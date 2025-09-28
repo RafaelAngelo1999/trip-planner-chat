@@ -16,7 +16,8 @@ import { useArtifact } from "../artifact";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bot, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { useSettings } from "@/hooks";
 
 function CopyButton({ content }: { content: string }) {
@@ -48,6 +49,171 @@ function CopyButton({ content }: { content: string }) {
   );
 }
 
+// Safe wrapper for LoadExternalComponent to handle runtime errors
+function SafeLoadExternalComponent({
+  customComponent,
+  thread,
+  artifact,
+}: {
+  customComponent: any;
+  thread: ReturnType<typeof useStreamContext>;
+  artifact: any;
+}) {
+  // Add a defensive wrapper to catch runtime errors (hooks must be at top)
+  const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
+  // Use useEffect to catch async errors
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      if (
+        event.error &&
+        event.error.message &&
+        (event.error.message.includes("Cannot read properties of undefined") ||
+          event.error.message.includes("convertApiFlightToItinerary") ||
+          event.error.message.includes("getFlightDetails") ||
+          event.error.message.includes("fetchFlight"))
+      ) {
+        setHasError(true);
+        setErrorMessage(event.error.message);
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener("error", handleError);
+    return () => window.removeEventListener("error", handleError);
+  }, []);
+
+  // Validate that required data is present
+  if (!customComponent) {
+    console.warn(
+      "SafeLoadExternalComponent: customComponent is undefined or null",
+    );
+    return (
+      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-700/50 dark:bg-yellow-900/20 dark:text-yellow-300">
+        <p className="font-medium">Missing Component Data</p>
+        <p className="text-xs opacity-75">
+          Component data is missing or invalid.
+        </p>
+      </div>
+    );
+  }
+
+  // Validate component has required properties
+  if (!customComponent.id) {
+    console.warn(
+      "SafeLoadExternalComponent: customComponent missing 'id' property",
+      customComponent,
+    );
+    return (
+      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-700/50 dark:bg-yellow-900/20 dark:text-yellow-300">
+        <p className="font-medium">Invalid Component Data</p>
+        <p className="text-xs opacity-75">
+          Component is missing required 'id' property.
+        </p>
+      </div>
+    );
+  }
+
+  if (hasError) {
+    const isFlightError =
+      errorMessage.includes("convertApiFlightToItinerary") ||
+      errorMessage.includes("getFlightDetails") ||
+      errorMessage.includes("fetchFlight");
+
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-700/50 dark:bg-red-900/20 dark:text-red-300">
+        <div className="mb-2 flex items-center gap-2">
+          <svg
+            className="h-4 w-4"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <p className="font-medium">
+            {isFlightError
+              ? "Flight Data Processing Error"
+              : "Component Loading Failed"}
+          </p>
+        </div>
+        <p className="mb-2 text-xs opacity-75">
+          {isFlightError
+            ? "There was an issue processing the flight data. The flight information may be incomplete or missing required fields."
+            : "External component could not be loaded. This might be due to a network issue or missing dependencies."}
+        </p>
+        <details className="text-xs opacity-60">
+          <summary className="cursor-pointer hover:opacity-80">
+            Error details
+          </summary>
+          <pre className="mt-2 font-mono text-xs whitespace-pre-wrap">
+            {errorMessage}
+          </pre>
+        </details>
+      </div>
+    );
+  }
+
+  try {
+    return (
+      <LoadExternalComponent
+        key={customComponent.id}
+        stream={thread}
+        message={customComponent}
+        meta={{ ui: customComponent, artifact }}
+      />
+    );
+  } catch (error) {
+    console.error("Failed to load external component:", error);
+    const syncErrorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const isFlightError =
+      syncErrorMessage.includes("convertApiFlightToItinerary") ||
+      syncErrorMessage.includes("getFlightDetails") ||
+      syncErrorMessage.includes("fetchFlight");
+
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-700/50 dark:bg-red-900/20 dark:text-red-300">
+        <div className="mb-2 flex items-center gap-2">
+          <svg
+            className="h-4 w-4"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <p className="font-medium">
+            {isFlightError
+              ? "Flight Data Processing Error"
+              : "Component Loading Failed"}
+          </p>
+        </div>
+        <p className="mb-2 text-xs opacity-75">
+          {isFlightError
+            ? "There was an issue processing the flight data. The flight information may be incomplete or missing required fields."
+            : "External component could not be loaded. This might be due to a network issue or missing dependencies."}
+        </p>
+        <details className="text-xs opacity-60">
+          <summary className="cursor-pointer hover:opacity-80">
+            Error details
+          </summary>
+          <pre className="mt-2 font-mono text-xs whitespace-pre-wrap">
+            {syncErrorMessage}
+          </pre>
+        </details>
+      </div>
+    );
+  }
+}
+
 function CustomComponent({
   message,
   thread,
@@ -65,12 +231,44 @@ function CustomComponent({
   return (
     <Fragment key={message.id}>
       {customComponents.map((customComponent) => (
-        <LoadExternalComponent
-          key={customComponent.id}
-          stream={thread}
-          message={customComponent}
-          meta={{ ui: customComponent, artifact }}
-        />
+        <ErrorBoundary
+          key={customComponent?.id || "unknown"}
+          fallback={
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-700/50 dark:bg-red-900/20 dark:text-red-300">
+              <div className="mb-2 flex items-center gap-2">
+                <svg
+                  className="h-4 w-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <p className="font-medium">Flight Component Error</p>
+              </div>
+              <p className="text-xs opacity-75">
+                There was an error rendering the flight component. This might be
+                due to missing or invalid flight data.
+              </p>
+            </div>
+          }
+          onError={(error, errorInfo) => {
+            console.error(
+              "CustomComponent Error Boundary caught error:",
+              error,
+              errorInfo,
+            );
+          }}
+        >
+          <SafeLoadExternalComponent
+            customComponent={customComponent}
+            thread={thread}
+            artifact={artifact}
+          />
+        </ErrorBoundary>
       ))}
     </Fragment>
   );

@@ -22,3 +22,6 @@ export * from "./language-selector";
 
 // Notification Components
 export * from "./sonner";
+
+// Error Handling Components
+export * from "./error-boundary";

@@ -4,6 +4,8 @@ import { Inter } from "next/font/google";
 import React from "react";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ThemeProvider } from "next-themes";
+// Import polyfills early to ensure they're available
+import "@/lib/polyfills";
 
 const inter = Inter({
   subsets: ["latin"],
