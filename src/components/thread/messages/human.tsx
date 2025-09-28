@@ -53,8 +53,10 @@ export function HumanMessage({
     setIsEditing(false);
 
     const newMessage: Message = { type: "human", content: value };
+    const context = { language: thread.language };
+
     thread.submit(
-      { messages: [newMessage] },
+      { messages: [newMessage], context },
       {
         checkpoint: parentCheckpoint,
         streamMode: ["values"],

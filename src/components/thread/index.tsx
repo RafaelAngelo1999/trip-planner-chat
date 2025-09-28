@@ -45,6 +45,7 @@ import {
   ArtifactTitle,
   useArtifactContext,
 } from "./artifact";
+import { LanguageSelector } from "../ui/language-selector";
 
 function StickyToBottomContent(props: {
   content: ReactNode;
@@ -211,8 +212,10 @@ export function Thread() {
 
     const toolMessages = ensureToolCallsHaveResponses(stream.messages);
 
-    const context =
-      Object.keys(artifactContext).length > 0 ? artifactContext : undefined;
+    const context = {
+      ...(Object.keys(artifactContext).length > 0 ? artifactContext : {}),
+      language: stream.language,
+    };
 
     stream.submit(
       { messages: [...toolMessages, newHumanMessage], context },
@@ -242,12 +245,20 @@ export function Thread() {
     // Do this so the loading state is correct
     prevMessageLength.current = prevMessageLength.current - 1;
     setFirstTokenReceived(false);
-    stream.submit(undefined, {
-      checkpoint: parentCheckpoint,
-      streamMode: ["values"],
-      streamSubgraphs: true,
-      streamResumable: true,
-    });
+
+    const context = {
+      language: stream.language,
+    };
+
+    stream.submit(
+      { context },
+      {
+        checkpoint: parentCheckpoint,
+        streamMode: ["values"],
+        streamSubgraphs: true,
+        streamResumable: true,
+      },
+    );
   };
 
   const chatStarted = !!threadId || !!messages.length;
@@ -325,7 +336,8 @@ export function Thread() {
                   </Button>
                 )}
               </div>
-              <div className="absolute top-2 right-4 flex items-center">
+              <div className="absolute top-2 right-4 flex items-center gap-4">
+                <LanguageSelector />
                 <OpenGitHubRepo />
               </div>
             </div>
@@ -371,6 +383,7 @@ export function Thread() {
               </div>
 
               <div className="flex items-center gap-4">
+                <LanguageSelector />
                 <div className="flex items-center">
                   <OpenGitHubRepo />
                 </div>
