@@ -14,6 +14,39 @@ import { ThreadView } from "../agent-inbox";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { GenericInterruptView } from "./generic-interrupt";
 import { useArtifact } from "../artifact";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Bot, Copy, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+
+function CopyButton({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleCopy}
+      className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 transition-opacity group-hover/message:opacity-100"
+    >
+      {copied ? (
+        <Check className="h-3 w-3 text-green-600" />
+      ) : (
+        <Copy className="h-3 w-3" />
+      )}
+    </Button>
+  );
+}
 
 function CustomComponent({
   message,
@@ -141,8 +174,13 @@ export function AssistantMessage({
   }
 
   return (
-    <div className="group mr-auto flex items-start gap-2">
-      <div className="flex flex-col gap-2">
+    <div className="group mr-auto flex max-w-4xl items-start gap-3">
+      <Avatar className="mt-1 h-8 w-8 bg-green-500">
+        <AvatarFallback className="bg-green-500 text-white">
+          <Bot className="h-4 w-4" />
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex flex-1 flex-col gap-2">
         {isToolResult ? (
           <>
             <ToolResult message={message} />
@@ -155,8 +193,11 @@ export function AssistantMessage({
         ) : (
           <>
             {contentString.length > 0 && (
-              <div className="py-1">
-                <MarkdownText>{contentString}</MarkdownText>
+              <div className="group/message relative max-w-3xl rounded-2xl bg-gray-50 px-4 py-3 shadow-sm">
+                <div className="prose prose-sm max-w-none">
+                  <MarkdownText>{contentString}</MarkdownText>
+                </div>
+                <CopyButton content={contentString} />
               </div>
             )}
 
@@ -185,6 +226,17 @@ export function AssistantMessage({
               isLastMessage={isLastMessage}
               hasNoAIOrToolMessages={hasNoAIOrToolMessages}
             />
+            {/* Timestamp sempre visível */}
+            <div className="mt-1 mr-auto">
+              <div className="text-xs text-gray-500">
+                {new Date().toLocaleTimeString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            </div>
+
+            {/* Controles (só aparecem no hover) */}
             <div
               className={cn(
                 "mr-auto flex items-center gap-2 transition-opacity",
@@ -213,11 +265,21 @@ export function AssistantMessage({
 
 export function AssistantMessageLoading() {
   return (
-    <div className="mr-auto flex items-start gap-2">
-      <div className="bg-muted flex h-8 items-center gap-1 rounded-2xl px-4 py-2">
-        <div className="bg-foreground/50 h-1.5 w-1.5 animate-[pulse_1.5s_ease-in-out_infinite] rounded-full"></div>
-        <div className="bg-foreground/50 h-1.5 w-1.5 animate-[pulse_1.5s_ease-in-out_0.5s_infinite] rounded-full"></div>
-        <div className="bg-foreground/50 h-1.5 w-1.5 animate-[pulse_1.5s_ease-in-out_1s_infinite] rounded-full"></div>
+    <div className="mr-auto flex max-w-4xl items-start gap-3">
+      <Avatar className="mt-1 h-8 w-8 bg-green-500">
+        <AvatarFallback className="bg-green-500 text-white">
+          <Bot className="h-4 w-4" />
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex flex-col gap-2">
+        <div className="bg-muted flex h-8 items-center gap-1 rounded-2xl px-4 py-2">
+          <div className="bg-foreground/50 h-1.5 w-1.5 animate-[pulse_1.5s_ease-in-out_infinite] rounded-full"></div>
+          <div className="bg-foreground/50 h-1.5 w-1.5 animate-[pulse_1.5s_ease-in-out_0.5s_infinite] rounded-full"></div>
+          <div className="bg-foreground/50 h-1.5 w-1.5 animate-[pulse_1.5s_ease-in-out_1s_infinite] rounded-full"></div>
+        </div>
+        <div className="text-xs text-gray-500 opacity-60">
+          IA está pensando...
+        </div>
       </div>
     </div>
   );

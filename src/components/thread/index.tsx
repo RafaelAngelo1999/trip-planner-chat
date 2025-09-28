@@ -13,28 +13,22 @@ import {
   ensureToolCallsHaveResponses,
 } from "@/lib/ensure-tool-responses";
 import { LangGraphLogoSVG } from "../icons/langgraph";
+import { TripIAIcon } from "../icons/trip-ia";
 import { TooltipIconButton } from "./tooltip-icon-button";
 import {
   ArrowDown,
   LoaderCircle,
-  PanelRightOpen,
-  PanelRightClose,
-  SquarePen,
   XIcon,
   Settings,
+  History,
+  Plus,
 } from "lucide-react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import ThreadHistory from "./history";
 import { toast } from "sonner";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { GitHubSVG } from "../icons/github";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
+
 import {
   useArtifactOpen,
   ArtifactContent,
@@ -55,7 +49,7 @@ function StickyToBottomContent(props: {
   const context = useStickToBottomContext();
   const { isAtBottom, scrollToBottom } = context;
   const { onScrollContext } = props;
-  
+
   // Expose scroll context to parent component
   useEffect(() => {
     onScrollContext?.(isAtBottom, scrollToBottom);
@@ -92,30 +86,6 @@ function ScrollToBottom(props: { className?: string }) {
       <ArrowDown className="h-4 w-4" />
       <span>Scroll to bottom</span>
     </Button>
-  );
-}
-
-function OpenGitHubRepo() {
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <a
-            href="https://github.com/langchain-ai/agent-chat-ui"
-            target="_blank"
-            className="flex items-center justify-center"
-          >
-            <GitHubSVG
-              width="24"
-              height="24"
-            />
-          </a>
-        </TooltipTrigger>
-        <TooltipContent side="left">
-          <p>Open GitHub repo</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
   );
 }
 
@@ -184,21 +154,25 @@ export function Thread() {
   const prevMessageLength = useRef(0);
   const scrollToBottomRef = useRef<(() => void) | null>(null);
   const isAtBottomRef = useRef<boolean>(true);
-  
+
   useEffect(() => {
-    const hasNewMessage = messages.length !== prevMessageLength.current && messages?.length;
+    const hasNewMessage =
+      messages.length !== prevMessageLength.current && messages?.length;
     const lastMessage = messages[messages.length - 1];
-    
+
     if (hasNewMessage) {
       if (lastMessage?.type === "ai") {
         setFirstTokenReceived(true);
-        
+
         // Play notification sound if enabled (only for AI messages)
         playNotificationSound(settings.enableSounds);
       }
-      
+
       // Auto-scroll if enabled and user is near bottom (for both AI and human messages)
-      if (settings.autoScroll && (isAtBottomRef.current || messages.length === 1)) {
+      if (
+        settings.autoScroll &&
+        (isAtBottomRef.current || messages.length === 1)
+      ) {
         // Small delay to ensure content is rendered
         setTimeout(() => {
           scrollToBottomRef.current?.();
@@ -207,7 +181,12 @@ export function Thread() {
     }
 
     prevMessageLength.current = messages.length;
-  }, [messages, settings.enableSounds, settings.autoScroll, playNotificationSound]);
+  }, [
+    messages,
+    settings.enableSounds,
+    settings.autoScroll,
+    playNotificationSound,
+  ]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -337,57 +316,86 @@ export function Thread() {
           }
         >
           {!chatStarted && (
-            <div className="absolute top-0 left-0 z-10 flex w-full items-center justify-between gap-3 p-2 pl-4">
-              <div>
-                {(!chatHistoryOpen || !isLargeScreen) && (
-                  <Button
-                    className="hover:bg-gray-100"
-                    variant="ghost"
-                    onClick={() => setChatHistoryOpen((p) => !p)}
-                  >
-                    {chatHistoryOpen ? (
-                      <PanelRightOpen className="size-5" />
-                    ) : (
-                      <PanelRightClose className="size-5" />
-                    )}
-                  </Button>
-                )}
+            <div className="absolute top-0 left-0 z-10 flex w-full items-center justify-between gap-3 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 p-4 dark:border-blue-800 dark:from-blue-950 dark:to-cyan-950">
+              <div className="flex items-center gap-4">
+                {settings.showThreadHistory &&
+                  (!chatHistoryOpen || !isLargeScreen) && (
+                    <Button
+                      className="hover:bg-blue-100 dark:hover:bg-blue-800"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setChatHistoryOpen((p) => !p)}
+                    >
+                      <History className="mr-2 size-4" />
+                      {chatHistoryOpen ? "Fechar Histórico" : "Histórico"}
+                    </Button>
+                  )}
               </div>
-              <div className="absolute top-2 right-4 flex items-center gap-4">
+
+              {/* Título principal centralizado */}
+              <div className="absolute left-1/2 flex -translate-x-1/2 transform items-center gap-3">
+                <TripIAIcon
+                  width={40}
+                  height={40}
+                />
+                <div className="text-center">
+                  <h1 className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-2xl font-bold text-transparent">
+                    Trip-IA Agent
+                  </h1>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Seu assistente inteligente de viagens
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
                 <TooltipIconButton
                   tooltip="Configurações"
-                  variant="ghost"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setSettingsOpen(true)}
                 >
-                  <Settings className="size-5" />
+                  <Settings className="size-4" />
                 </TooltipIconButton>
-                <OpenGitHubRepo />
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setThreadId(null)}
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500 px-4 font-medium text-white hover:from-blue-600 hover:to-cyan-600"
+                >
+                  <Plus className="mr-2 size-4" />
+                  Novo Chat
+                </Button>
               </div>
             </div>
           )}
           {chatStarted && (
-            <div className="relative z-10 flex items-center justify-between gap-3 p-2">
-              <div className="relative flex items-center justify-start gap-2">
-                <div className="absolute left-0 z-10">
-                  {(!chatHistoryOpen || !isLargeScreen) && (
-                    <Button
-                      className="hover:bg-gray-100"
-                      variant="ghost"
-                      onClick={() => setChatHistoryOpen((p) => !p)}
-                    >
-                      {chatHistoryOpen ? (
-                        <PanelRightOpen className="size-5" />
-                      ) : (
-                        <PanelRightClose className="size-5" />
-                      )}
-                    </Button>
-                  )}
+            <div className="relative z-10 flex items-center justify-between gap-3 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 p-4 dark:border-blue-800 dark:from-blue-950 dark:to-cyan-950">
+              <div className="relative flex items-center justify-start gap-3">
+                <div className="flex items-center gap-1">
+                  {settings.showThreadHistory &&
+                    (!chatHistoryOpen || !isLargeScreen) && (
+                      <Button
+                        className="hover:bg-blue-100 dark:hover:bg-blue-800"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setChatHistoryOpen((p) => !p)}
+                      >
+                        <History className="mr-1 size-4" />
+                        {isLargeScreen
+                          ? chatHistoryOpen
+                            ? "Fechar"
+                            : "Histórico"
+                          : ""}
+                      </Button>
+                    )}
                 </div>
                 <motion.button
-                  className="flex cursor-pointer items-center gap-2"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-blue-100 dark:hover:bg-blue-800"
                   onClick={() => setThreadId(null)}
                   animate={{
-                    marginLeft: !chatHistoryOpen ? 48 : 0,
+                    marginLeft:
+                      !chatHistoryOpen && settings.showThreadHistory ? 0 : 0,
                   }}
                   transition={{
                     type: "spring",
@@ -395,39 +403,42 @@ export function Thread() {
                     damping: 30,
                   }}
                 >
-                  <LangGraphLogoSVG
+                  <TripIAIcon
                     width={32}
                     height={32}
                   />
-                  <span className="text-xl font-semibold tracking-tight">
-                    Agent Chat
-                  </span>
+                  <div className="text-left">
+                    <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-lg font-bold text-transparent">
+                      Trip-IA Agent
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Assistente de Viagens
+                    </span>
+                  </div>
                 </motion.button>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <TooltipIconButton
                   tooltip="Configurações"
-                  variant="ghost"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setSettingsOpen(true)}
                 >
-                  <Settings className="size-5" />
+                  <Settings className="size-4" />
                 </TooltipIconButton>
-                <div className="flex items-center">
-                  <OpenGitHubRepo />
-                </div>
-                <TooltipIconButton
-                  size="lg"
-                  className="p-4"
-                  tooltip="New thread"
-                  variant="ghost"
+                <Button
+                  variant="default"
+                  size="sm"
                   onClick={() => setThreadId(null)}
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500 px-3 font-medium text-white hover:from-blue-600 hover:to-cyan-600"
                 >
-                  <SquarePen className="size-5" />
-                </TooltipIconButton>
+                  <Plus className="mr-1 size-4" />
+                  {isLargeScreen ? "Novo Chat" : "Novo"}
+                </Button>
               </div>
 
-              <div className="from-background to-background/0 absolute inset-x-0 top-full h-5 bg-gradient-to-b" />
+              <div className="from-background to-background/0 absolute inset-x-0 top-full h-3 bg-gradient-to-b" />
             </div>
           )}
 
@@ -491,14 +502,11 @@ export function Thread() {
 
                   <ScrollToBottom className="animate-in fade-in-0 zoom-in-95 absolute bottom-full left-1/2 mb-4 -translate-x-1/2" />
 
-                  <div
-                    className="bg-muted relative z-10 mx-auto mb-8 w-full max-w-3xl rounded-2xl shadow-xs transition-all border border-solid"
-                  >
+                  <div className="bg-muted relative z-10 mx-auto mb-8 w-full max-w-3xl rounded-2xl border border-solid shadow-xs transition-all">
                     <form
                       onSubmit={handleSubmit}
                       className="mx-auto grid max-w-3xl grid-rows-[1fr_auto] gap-2"
                     >
-
                       <textarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
@@ -521,7 +529,9 @@ export function Thread() {
 
                       <div className="flex items-center justify-between p-2 pt-4">
                         <div className="text-xs text-gray-500">
-                          <span className="font-medium">Shift + Enter</span> para quebrar linha • <span className="font-medium">Enter</span> para enviar
+                          <span className="font-medium">Shift + Enter</span>{" "}
+                          para quebrar linha •{" "}
+                          <span className="font-medium">Enter</span> para enviar
                         </div>
                         {stream.isLoading ? (
                           <Button
@@ -536,9 +546,7 @@ export function Thread() {
                           <Button
                             type="submit"
                             className="ml-auto shadow-md transition-all"
-                            disabled={
-                              isLoading || !input.trim()
-                            }
+                            disabled={isLoading || !input.trim()}
                           >
                             Send
                           </Button>

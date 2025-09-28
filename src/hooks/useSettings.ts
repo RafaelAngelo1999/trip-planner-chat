@@ -11,6 +11,7 @@ export interface Settings {
   theme: "light" | "dark" | "system";
   autoScroll: boolean;
   enableSounds: boolean;
+  showThreadHistory: boolean;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -19,6 +20,7 @@ const DEFAULT_SETTINGS: Settings = {
   theme: "system",
   autoScroll: true,
   enableSounds: false,
+  showThreadHistory: true,
 };
 
 export function useSettings() {
@@ -38,6 +40,8 @@ export function useSettings() {
         "system",
       autoScroll: localStorage.getItem("lg:settings:autoScroll") !== "false",
       enableSounds: localStorage.getItem("lg:settings:enableSounds") === "true",
+      showThreadHistory:
+        localStorage.getItem("lg:settings:showThreadHistory") !== "false",
     };
 
     setSettings(loadedSettings);
@@ -72,6 +76,12 @@ export function useSettings() {
       localStorage.setItem(
         "lg:settings:enableSounds",
         newSettings.enableSounds.toString(),
+      );
+    }
+    if (newSettings.showThreadHistory !== undefined) {
+      localStorage.setItem(
+        "lg:settings:showThreadHistory",
+        newSettings.showThreadHistory.toString(),
       );
     }
 

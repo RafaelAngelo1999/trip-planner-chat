@@ -183,7 +183,23 @@ export function SettingsModal({
                 />
               </div>
 
-
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>📚 Mostrar Histórico de Conversas</Label>
+                  <p className="text-muted-foreground text-sm">
+                    Exibe o painel lateral com o histórico de threads
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.showThreadHistory}
+                  onCheckedChange={(checked) =>
+                    setSettings((prev: Settings) => ({
+                      ...prev,
+                      showThreadHistory: checked,
+                    }))
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
