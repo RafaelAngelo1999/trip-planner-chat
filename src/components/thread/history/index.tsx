@@ -25,7 +25,7 @@ function ThreadList({
   const [threadId, setThreadId] = useQueryState("threadId");
 
   return (
-    <div className="flex h-full w-full flex-col items-start justify-start gap-2 overflow-y-scroll [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-transparent">
+    <div className="flex h-full w-full flex-col items-start justify-start gap-2 overflow-y-scroll [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-500 [&::-webkit-scrollbar-track]:bg-transparent">
       {threads.map((t) => {
         let itemText = t.thread_id;
         if (
@@ -45,7 +45,11 @@ function ThreadList({
           >
             <Button
               variant="ghost"
-              className="w-[280px] items-start justify-start text-left font-normal"
+              className={`w-[280px] items-start justify-start text-left font-normal hover:bg-blue-50 dark:hover:bg-slate-700/50 ${
+                t.thread_id === threadId
+                  ? "bg-blue-100 text-blue-700 dark:bg-slate-700 dark:text-blue-400"
+                  : "text-gray-700 dark:text-gray-300"
+              }`}
               onClick={(e) => {
                 e.preventDefault();
                 onThreadClick?.(t.thread_id);
@@ -64,11 +68,11 @@ function ThreadList({
 
 function ThreadHistoryLoading() {
   return (
-    <div className="flex h-full w-full flex-col items-start justify-start gap-2 overflow-y-scroll [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-transparent">
+    <div className="flex h-full w-full flex-col items-start justify-start gap-2 overflow-y-scroll px-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-500 [&::-webkit-scrollbar-track]:bg-transparent">
       {Array.from({ length: 30 }).map((_, i) => (
         <Skeleton
           key={`skeleton-${i}`}
-          className="h-10 w-[280px]"
+          className="h-10 w-[280px] bg-gray-200 dark:bg-slate-700"
         />
       ))}
     </div>
@@ -96,21 +100,21 @@ export default function ThreadHistory() {
 
   return (
     <>
-      <div className="shadow-inner-right hidden h-screen w-[300px] shrink-0 flex-col items-start justify-start gap-6 border-r-[1px] border-slate-300 lg:flex">
-        <div className="flex w-full items-center justify-between px-4 pt-1.5">
+      <div className="shadow-inner-right hidden h-screen w-[300px] shrink-0 flex-col items-start justify-start gap-6 border-r-[1px] border-slate-300 bg-white lg:flex dark:border-slate-600/50 dark:bg-slate-900">
+        <div className="flex w-full items-center justify-between border-b border-gray-100 px-4 pt-1.5 pb-3 dark:border-slate-700/50">
           <Button
-            className="hover:bg-gray-100"
+            className="hover:bg-gray-100 dark:hover:bg-slate-700/50"
             variant="ghost"
             onClick={() => setChatHistoryOpen((p) => !p)}
           >
             {chatHistoryOpen ? (
-              <PanelRightOpen className="size-5" />
+              <PanelRightOpen className="size-5 text-gray-600 dark:text-gray-300" />
             ) : (
-              <PanelRightClose className="size-5" />
+              <PanelRightClose className="size-5 text-gray-600 dark:text-gray-300" />
             )}
           </Button>
-          <h1 className="text-xl font-semibold tracking-tight">
-            Thread History
+          <h1 className="text-lg font-semibold tracking-tight text-gray-800 dark:text-gray-200">
+            Histórico
           </h1>
         </div>
         {threadsLoading ? (
@@ -129,10 +133,12 @@ export default function ThreadHistory() {
         >
           <SheetContent
             side="left"
-            className="flex lg:hidden"
+            className="flex border-r border-slate-200 bg-white lg:hidden dark:border-slate-700 dark:bg-slate-900"
           >
             <SheetHeader>
-              <SheetTitle>Thread History</SheetTitle>
+              <SheetTitle className="text-gray-800 dark:text-gray-200">
+                Histórico de Conversas
+              </SheetTitle>
             </SheetHeader>
             <ThreadList
               threads={threads}

@@ -12,9 +12,7 @@ import {
   DO_NOT_RENDER_ID_PREFIX,
   ensureToolCallsHaveResponses,
 } from "@/lib/ensure-tool-responses";
-import { LangGraphLogoSVG } from "../icons/langgraph";
 import { TripIAIcon } from "../icons/trip-ia";
-import { TooltipIconButton } from "./tooltip-icon-button";
 import {
   ArrowDown,
   LoaderCircle,
@@ -266,7 +264,7 @@ export function Thread() {
     <div className="flex h-screen w-full overflow-hidden">
       <div className="relative hidden lg:flex">
         <motion.div
-          className="absolute z-20 h-full overflow-hidden border-r bg-white"
+          className="absolute z-20 h-full overflow-hidden border-r bg-white shadow-xl dark:border-slate-600/50 dark:bg-slate-900 dark:shadow-2xl dark:shadow-slate-900/40"
           style={{ width: 300 }}
           animate={
             isLargeScreen
@@ -316,17 +314,17 @@ export function Thread() {
           }
         >
           {!chatStarted && (
-            <div className="absolute top-0 left-0 z-10 flex w-full items-center justify-between gap-3 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 p-4 dark:border-blue-800 dark:from-blue-950 dark:to-cyan-950">
-              <div className="flex items-center gap-4">
+            <div className="absolute top-0 left-0 z-10 flex h-[72px] w-full items-center justify-between gap-3 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 p-4 dark:border-slate-600/30 dark:from-slate-900/95 dark:to-slate-800/95">
+              <div className="flex items-center gap-1">
                 {settings.showThreadHistory &&
                   (!chatHistoryOpen || !isLargeScreen) && (
                     <Button
-                      className="hover:bg-blue-100 dark:hover:bg-blue-800"
+                      className="hover:bg-blue-100 dark:hover:bg-slate-700/50"
                       variant="ghost"
                       size="sm"
                       onClick={() => setChatHistoryOpen((p) => !p)}
                     >
-                      <History className="mr-2 size-4" />
+                      <History className="mr-1 size-4" />
                       {chatHistoryOpen ? "Fechar Histórico" : "Histórico"}
                     </Button>
                   )}
@@ -335,48 +333,52 @@ export function Thread() {
               {/* Título principal centralizado */}
               <div className="absolute left-1/2 flex -translate-x-1/2 transform items-center gap-3">
                 <TripIAIcon
-                  width={40}
-                  height={40}
+                  width={32}
+                  height={32}
                 />
                 <div className="text-center">
-                  <h1 className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-2xl font-bold text-transparent">
+                  <h1 className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-lg font-bold text-transparent">
                     Trip-IA Agent
                   </h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Seu assistente inteligente de viagens
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Assistente de Viagens
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <TooltipIconButton
-                  tooltip="Configurações"
+                <Button
                   variant="outline"
-                  size="sm"
+                  size="default"
                   onClick={() => setSettingsOpen(true)}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-blue-100 dark:border-slate-600/50 dark:hover:bg-slate-700/50"
                 >
                   <Settings className="size-4" />
-                </TooltipIconButton>
+                  <span className="hidden text-sm font-medium lg:inline">
+                    Configurações
+                  </span>
+                  <span className="text-sm font-medium lg:hidden">Config</span>
+                </Button>
                 <Button
                   variant="default"
                   size="sm"
                   onClick={() => setThreadId(null)}
-                  className="bg-gradient-to-r from-blue-500 to-cyan-500 px-4 font-medium text-white hover:from-blue-600 hover:to-cyan-600"
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500 px-3 font-medium text-white hover:from-blue-600 hover:to-cyan-600"
                 >
-                  <Plus className="mr-2 size-4" />
-                  Novo Chat
+                  <Plus className="mr-1 size-4" />
+                  {isLargeScreen ? "Novo Chat" : "Novo"}
                 </Button>
               </div>
             </div>
           )}
           {chatStarted && (
-            <div className="relative z-10 flex items-center justify-between gap-3 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 p-4 dark:border-blue-800 dark:from-blue-950 dark:to-cyan-950">
+            <div className="relative z-10 flex h-[72px] items-center justify-between gap-3 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 p-4 dark:border-slate-600/30 dark:from-slate-900/95 dark:to-slate-800/95">
               <div className="relative flex items-center justify-start gap-3">
                 <div className="flex items-center gap-1">
                   {settings.showThreadHistory &&
                     (!chatHistoryOpen || !isLargeScreen) && (
                       <Button
-                        className="hover:bg-blue-100 dark:hover:bg-blue-800"
+                        className="hover:bg-blue-100 dark:hover:bg-slate-700/50"
                         variant="ghost"
                         size="sm"
                         onClick={() => setChatHistoryOpen((p) => !p)}
@@ -391,7 +393,7 @@ export function Thread() {
                     )}
                 </div>
                 <motion.button
-                  className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-blue-100 dark:hover:bg-blue-800"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-blue-100 dark:hover:bg-slate-700/50"
                   onClick={() => setThreadId(null)}
                   animate={{
                     marginLeft:
@@ -419,14 +421,18 @@ export function Thread() {
               </div>
 
               <div className="flex items-center gap-2">
-                <TooltipIconButton
-                  tooltip="Configurações"
+                <Button
                   variant="outline"
-                  size="sm"
+                  size="default"
                   onClick={() => setSettingsOpen(true)}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-blue-100 dark:border-slate-600/50 dark:hover:bg-slate-700/50"
                 >
                   <Settings className="size-4" />
-                </TooltipIconButton>
+                  <span className="hidden text-sm font-medium lg:inline">
+                    Configurações
+                  </span>
+                  <span className="text-sm font-medium lg:hidden">Config</span>
+                </Button>
                 <Button
                   variant="default"
                   size="sm"
@@ -445,11 +451,13 @@ export function Thread() {
           <StickToBottom className="relative flex-1 overflow-hidden">
             <StickyToBottomContent
               className={cn(
-                "absolute inset-0 overflow-y-scroll px-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-transparent",
-                !chatStarted && "mt-[25vh] flex flex-col items-stretch",
+                "absolute inset-0 overflow-y-scroll bg-gradient-to-br from-gray-50/20 via-white/10 to-gray-50/20 px-4 dark:from-slate-800/30 dark:via-slate-700/15 dark:to-slate-800/30",
+                "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-500 [&::-webkit-scrollbar-track]:bg-transparent",
+                "[&::-webkit-scrollbar-thumb]:transition-colors [&::-webkit-scrollbar-thumb]:hover:bg-gray-400 dark:[&::-webkit-scrollbar-thumb]:hover:bg-slate-400",
+                !chatStarted && "mt-[20vh] flex flex-col items-stretch",
                 chatStarted && "grid grid-rows-[1fr_auto]",
               )}
-              contentClassName="pt-8 pb-16  max-w-3xl mx-auto flex flex-col gap-4 w-full"
+              contentClassName="pt-8 pb-16  max-w-5xl mx-auto flex flex-col gap-4 w-full"
               onScrollContext={(isAtBottom, scrollToBottom) => {
                 isAtBottomRef.current = isAtBottom;
                 scrollToBottomRef.current = scrollToBottom;
@@ -490,22 +498,200 @@ export function Thread() {
                 </>
               }
               footer={
-                <div className="sticky bottom-0 flex flex-col items-center gap-8 bg-white">
+                <div className="sticky bottom-0 flex flex-col items-center gap-6 bg-white/95 backdrop-blur-sm dark:bg-slate-900/95">
                   {!chatStarted && (
-                    <div className="flex items-center gap-3">
-                      <LangGraphLogoSVG className="h-8 flex-shrink-0" />
-                      <h1 className="text-2xl font-semibold tracking-tight">
-                        Agent Chat
-                      </h1>
+                    <div className="mx-auto w-full max-w-4xl px-4">
+                      {/* Header Principal */}
+                      <div className="mb-6 text-center">
+                        <div className="mb-3 flex items-center justify-center gap-4">
+                          <TripIAIcon
+                            width={48}
+                            height={48}
+                          />
+                          <div>
+                            <h1 className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-3xl font-bold text-transparent">
+                              Trip-IA Agent
+                            </h1>
+                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                              Sua central de viagens inteligente
+                            </p>
+                          </div>
+                        </div>
+                        <p className="mx-auto max-w-2xl text-sm text-gray-700 dark:text-gray-300">
+                          Conecte-se aos nossos agentes especializados para
+                          planejar sua viagem perfeita.
+                        </p>
+                      </div>
+
+                      {/* Cards dos Agentes - Com mais contexto */}
+                      <div className="mb-6 grid gap-6 md:grid-cols-2">
+                        {/* Agent Voos */}
+                        <motion.div
+                          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-100 p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:border-blue-700/50 dark:from-slate-800 dark:via-slate-700 dark:to-blue-900/80"
+                          whileHover={{ scale: 1.03, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setInput(
+                              "Quero buscar voos de CNF para SFO, ida em 01/10/2025 e volta em 10/10/2025, para 1 adulto",
+                            );
+                            setTimeout(() => {
+                              const form = document.querySelector("form");
+                              form?.requestSubmit();
+                            }, 100);
+                          }}
+                        >
+                          {/* Efeito de brilho decorativo */}
+                          <div className="absolute -top-4 -right-4 h-20 w-20 rounded-full bg-gradient-to-br from-blue-400/20 to-cyan-400/20 opacity-70 blur-lg" />
+
+                          <div className="relative z-10">
+                            <div className="mb-4 flex items-center gap-4">
+                              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                                <span className="text-2xl text-white">✈️</span>
+                              </div>
+                              <div>
+                                <h3 className="text-xl font-bold text-gray-800 transition-colors group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400">
+                                  Agent Voos
+                                </h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  Especialista em aviação comercial
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="mb-4 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                              <div className="flex items-center gap-2">
+                                <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+                                <span>
+                                  <strong className="text-blue-600 dark:text-blue-400">
+                                    Buscar:
+                                  </strong>{" "}
+                                  Compare voos, horários e preços
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="h-1.5 w-1.5 rounded-full bg-cyan-500"></div>
+                                <span>
+                                  <strong className="text-cyan-600 dark:text-cyan-400">
+                                    Reservar:
+                                  </strong>{" "}
+                                  Confirme com PNR e status
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+                                <span>
+                                  <strong className="text-blue-600 dark:text-blue-400">
+                                    Cancelar:
+                                  </strong>{" "}
+                                  Gerencie suas reservas
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="rounded-xl border border-blue-200/50 bg-white/80 p-3 transition-all group-hover:bg-white dark:border-blue-600/30 dark:bg-slate-700/70 dark:group-hover:bg-slate-600/80">
+                              <p className="mb-1 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                                💡 Exemplo de uso:
+                              </p>
+                              <p className="text-sm leading-relaxed text-gray-700 italic dark:text-gray-300">
+                                "Quero buscar voos de CNF para SFO, ida em
+                                01/10/2025 e volta em 10/10/2025, para 1 adulto"
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        {/* Agent Hotéis */}
+                        <motion.div
+                          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-purple-200/60 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100 p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:border-purple-700/50 dark:from-slate-800 dark:via-slate-700 dark:to-purple-900/80"
+                          whileHover={{ scale: 1.03, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setInput(
+                              "Quero buscar hotéis em SFO para check-in em 01/10/2025 e check-out em 10/10/2025",
+                            );
+                            setTimeout(() => {
+                              const form = document.querySelector("form");
+                              form?.requestSubmit();
+                            }, 100);
+                          }}
+                        >
+                          {/* Efeito de brilho decorativo */}
+                          <div className="absolute -top-4 -right-4 h-20 w-20 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 opacity-70 blur-lg" />
+
+                          <div className="relative z-10">
+                            <div className="mb-4 flex items-center gap-4">
+                              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                                <span className="text-2xl text-white">🏨</span>
+                              </div>
+                              <div>
+                                <h3 className="text-xl font-bold text-gray-800 transition-colors group-hover:text-purple-600 dark:text-gray-100 dark:group-hover:text-purple-400">
+                                  Agent Hotéis
+                                </h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  Especialista em hospedagem
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="mb-4 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                              <div className="flex items-center gap-2">
+                                <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
+                                <span>
+                                  <strong className="text-purple-600 dark:text-purple-400">
+                                    Buscar:
+                                  </strong>{" "}
+                                  Hotéis com avaliações e preços
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="h-1.5 w-1.5 rounded-full bg-pink-500"></div>
+                                <span>
+                                  <strong className="text-pink-600 dark:text-pink-400">
+                                    Reservar:
+                                  </strong>{" "}
+                                  Confirme sua estadia
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
+                                <span>
+                                  <strong className="text-purple-600 dark:text-purple-400">
+                                    Avaliar:
+                                  </strong>{" "}
+                                  Compare opções disponíveis
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="rounded-xl border border-purple-200/50 bg-white/80 p-3 transition-all group-hover:bg-white dark:border-purple-600/30 dark:bg-slate-700/70 dark:group-hover:bg-slate-600/80">
+                              <p className="mb-1 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                                💡 Exemplo de uso:
+                              </p>
+                              <p className="text-sm leading-relaxed text-gray-700 italic dark:text-gray-300">
+                                "Quero buscar hotéis em SFO para check-in em
+                                01/10/2025 e check-out em 10/10/2025"
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      </div>
+
+                      {/* Dica adicional */}
+                      <div className="mb-4 text-center">
+                        <p className="inline-block rounded-full bg-gray-100/80 px-4 py-2 text-xs text-gray-500 dark:bg-slate-700/80 dark:text-slate-300">
+                          💬 <strong>Dica:</strong> Clique em um agente ou
+                          digite diretamente sua solicitação
+                        </p>
+                      </div>
                     </div>
                   )}
 
                   <ScrollToBottom className="animate-in fade-in-0 zoom-in-95 absolute bottom-full left-1/2 mb-4 -translate-x-1/2" />
 
-                  <div className="bg-muted relative z-10 mx-auto mb-8 w-full max-w-3xl rounded-2xl border border-solid shadow-xs transition-all">
+                  <div className="bg-muted relative z-10 mx-auto mb-6 w-full max-w-5xl rounded-2xl border border-solid shadow-sm backdrop-blur-sm transition-all dark:border-slate-600/60 dark:bg-slate-800/95 dark:shadow-lg dark:shadow-slate-900/30">
                     <form
                       onSubmit={handleSubmit}
-                      className="mx-auto grid max-w-3xl grid-rows-[1fr_auto] gap-2"
+                      className="mx-auto grid max-w-5xl grid-rows-[1fr_auto] gap-2"
                     >
                       <textarea
                         value={input}

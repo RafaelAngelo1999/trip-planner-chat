@@ -11,13 +11,13 @@ import { MessageContentComplex } from "@langchain/core/messages";
 import { Fragment } from "react/jsx-runtime";
 import { isAgentInboxInterruptSchema } from "@/lib/agent-inbox-interrupt";
 import { ThreadView } from "../agent-inbox";
-import { useQueryState, parseAsBoolean } from "nuqs";
 import { GenericInterruptView } from "./generic-interrupt";
 import { useArtifact } from "../artifact";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bot, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useSettings } from "@/hooks/useSettings";
 
 function CopyButton({ content }: { content: string }) {
   const [copied, setCopied] = useState(false);
@@ -137,10 +137,8 @@ export function AssistantMessage({
 }) {
   const content = message?.content ?? [];
   const contentString = getContentString(content);
-  const [hideToolCalls] = useQueryState(
-    "hideToolCalls",
-    parseAsBoolean.withDefault(false),
-  );
+  const { settings } = useSettings();
+  const hideToolCalls = settings.hideToolCalls;
 
   const thread = useStreamContext();
   const isLastMessage =
@@ -193,8 +191,8 @@ export function AssistantMessage({
         ) : (
           <>
             {contentString.length > 0 && (
-              <div className="group/message relative max-w-3xl rounded-2xl bg-gray-50 px-4 py-3 shadow-sm">
-                <div className="prose prose-sm max-w-none">
+              <div className="group/message relative max-w-4xl rounded-2xl bg-gray-50 px-4 py-3 shadow-sm dark:bg-slate-800 dark:shadow-slate-900/20">
+                <div className="prose prose-sm dark:prose-invert max-w-none">
                   <MarkdownText>{contentString}</MarkdownText>
                 </div>
                 <CopyButton content={contentString} />

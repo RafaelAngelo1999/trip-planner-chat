@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Button } from "./button";
-import { Label } from "./label";
-import { Switch } from "./switch";
+import { Button } from "../button";
+import { Label } from "../label";
+import { Switch } from "../switch";
 import { LANGUAGE_OPTIONS, SupportedLanguage } from "@/lib/language";
 import { X, Settings as SettingsIcon, Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
