@@ -9,14 +9,19 @@ interface LanguageSelectorProps {
 export function LanguageSelector({ className = "" }: LanguageSelectorProps) {
   const { language, setLanguage } = useStreamContext();
 
-  const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleLanguageChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
     const newLanguage = event.target.value as SupportedLanguage;
     setLanguage(newLanguage);
   };
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <label htmlFor="language-selector" className="text-sm font-medium">
+      <label
+        htmlFor="language-selector"
+        className="text-sm font-medium"
+      >
         Idioma:
       </label>
       <select
@@ -26,7 +31,10 @@ export function LanguageSelector({ className = "" }: LanguageSelectorProps) {
         className="bg-background border-input ring-offset-background text-foreground focus-visible:ring-ring flex h-8 rounded-md border px-2 py-1 text-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       >
         {LANGUAGE_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option
+            key={option.value}
+            value={option.value}
+          >
             {option.label}
           </option>
         ))}

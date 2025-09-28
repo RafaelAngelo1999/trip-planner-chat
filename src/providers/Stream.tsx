@@ -148,8 +148,9 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   // Always use environment variables - no form fallback
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
-  const assistantId = process.env.NEXT_PUBLIC_ASSISTANT_ID || DEFAULT_ASSISTANT_ID;
-  
+  const assistantId =
+    process.env.NEXT_PUBLIC_ASSISTANT_ID || DEFAULT_ASSISTANT_ID;
+
   // Get API key from environment or localStorage
   const apiKey = process.env.LANGSMITH_API_KEY || getApiKey() || null;
 

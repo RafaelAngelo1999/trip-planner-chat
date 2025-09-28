@@ -21,15 +21,13 @@ import {
   PanelRightClose,
   SquarePen,
   XIcon,
-  Plus,
+  Settings,
 } from "lucide-react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import ThreadHistory from "./history";
 import { toast } from "sonner";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { Label } from "../ui/label";
-import { Switch } from "../ui/switch";
 import { GitHubSVG } from "../icons/github";
 import {
   Tooltip,
@@ -37,23 +35,32 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { ContentBlocksPreview } from "./ContentBlocksPreview";
 import {
   useArtifactOpen,
   ArtifactContent,
   ArtifactTitle,
   useArtifactContext,
 } from "./artifact";
-import { LanguageSelector } from "../ui/language-selector";
+import { SettingsModal } from "../ui/settings-modal";
+import { useSettings, Settings as SettingsType } from "@/hooks/useSettings";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 
 function StickyToBottomContent(props: {
   content: ReactNode;
   footer?: ReactNode;
   className?: string;
   contentClassName?: string;
+  onScrollContext?: (isAtBottom: boolean, scrollToBottom: () => void) => void;
 }) {
   const context = useStickToBottomContext();
+  const { isAtBottom, scrollToBottom } = context;
+  const { onScrollContext } = props;
+  
+  // Expose scroll context to parent component
+  useEffect(() => {
+    onScrollContext?.(isAtBottom, scrollToBottom);
+  }, [isAtBottom, scrollToBottom, onScrollContext]);
+
   return (
     <div
       ref={context.scrollRef}
@@ -116,27 +123,18 @@ export function Thread() {
   const [artifactContext, setArtifactContext] = useArtifactContext();
   const [artifactOpen, closeArtifact] = useArtifactOpen();
 
+  const { settings, updateSettings } = useSettings();
   const [threadId, _setThreadId] = useQueryState("threadId");
   const [chatHistoryOpen, setChatHistoryOpen] = useQueryState(
     "chatHistoryOpen",
     parseAsBoolean.withDefault(false),
   );
-  const [hideToolCalls, setHideToolCalls] = useQueryState(
-    "hideToolCalls",
-    parseAsBoolean.withDefault(false),
-  );
+
   const [input, setInput] = useState("");
-  const {
-    contentBlocks,
-    setContentBlocks,
-    handleFileUpload,
-    dropRef,
-    removeBlock,
-    resetBlocks: _resetBlocks,
-    dragOver,
-    handlePaste,
-  } = useFileUpload();
+  // Content blocks state for future multimodal support
+  const [contentBlocks] = useState<any[]>([]);
   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
 
   const stream = useStreamContext();
@@ -181,19 +179,35 @@ export function Thread() {
     }
   }, [stream.error]);
 
-  // TODO: this should be part of the useStream hook
+  // Auto-scroll and notification sounds functionality
+  const { playNotificationSound } = useNotificationSound();
   const prevMessageLength = useRef(0);
+  const scrollToBottomRef = useRef<(() => void) | null>(null);
+  const isAtBottomRef = useRef<boolean>(true);
+  
   useEffect(() => {
-    if (
-      messages.length !== prevMessageLength.current &&
-      messages?.length &&
-      messages[messages.length - 1].type === "ai"
-    ) {
-      setFirstTokenReceived(true);
+    const hasNewMessage = messages.length !== prevMessageLength.current && messages?.length;
+    const lastMessage = messages[messages.length - 1];
+    
+    if (hasNewMessage) {
+      if (lastMessage?.type === "ai") {
+        setFirstTokenReceived(true);
+        
+        // Play notification sound if enabled (only for AI messages)
+        playNotificationSound(settings.enableSounds);
+      }
+      
+      // Auto-scroll if enabled and user is near bottom (for both AI and human messages)
+      if (settings.autoScroll && (isAtBottomRef.current || messages.length === 1)) {
+        // Small delay to ensure content is rendered
+        setTimeout(() => {
+          scrollToBottomRef.current?.();
+        }, 100);
+      }
     }
 
     prevMessageLength.current = messages.length;
-  }, [messages]);
+  }, [messages, settings.enableSounds, settings.autoScroll, playNotificationSound]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -236,7 +250,6 @@ export function Thread() {
     );
 
     setInput("");
-    setContentBlocks([]);
   };
 
   const handleRegenerate = (
@@ -259,6 +272,10 @@ export function Thread() {
         streamResumable: true,
       },
     );
+  };
+
+  const handleSaveSettings = (newSettings: SettingsType) => {
+    updateSettings(newSettings);
   };
 
   const chatStarted = !!threadId || !!messages.length;
@@ -337,7 +354,13 @@ export function Thread() {
                 )}
               </div>
               <div className="absolute top-2 right-4 flex items-center gap-4">
-                <LanguageSelector />
+                <TooltipIconButton
+                  tooltip="Configurações"
+                  variant="ghost"
+                  onClick={() => setSettingsOpen(true)}
+                >
+                  <Settings className="size-5" />
+                </TooltipIconButton>
                 <OpenGitHubRepo />
               </div>
             </div>
@@ -383,7 +406,13 @@ export function Thread() {
               </div>
 
               <div className="flex items-center gap-4">
-                <LanguageSelector />
+                <TooltipIconButton
+                  tooltip="Configurações"
+                  variant="ghost"
+                  onClick={() => setSettingsOpen(true)}
+                >
+                  <Settings className="size-5" />
+                </TooltipIconButton>
                 <div className="flex items-center">
                   <OpenGitHubRepo />
                 </div>
@@ -410,6 +439,10 @@ export function Thread() {
                 chatStarted && "grid grid-rows-[1fr_auto]",
               )}
               contentClassName="pt-8 pb-16  max-w-3xl mx-auto flex flex-col gap-4 w-full"
+              onScrollContext={(isAtBottom, scrollToBottom) => {
+                isAtBottomRef.current = isAtBottom;
+                scrollToBottomRef.current = scrollToBottom;
+              }}
               content={
                 <>
                   {messages
@@ -459,26 +492,16 @@ export function Thread() {
                   <ScrollToBottom className="animate-in fade-in-0 zoom-in-95 absolute bottom-full left-1/2 mb-4 -translate-x-1/2" />
 
                   <div
-                    ref={dropRef}
-                    className={cn(
-                      "bg-muted relative z-10 mx-auto mb-8 w-full max-w-3xl rounded-2xl shadow-xs transition-all",
-                      dragOver
-                        ? "border-primary border-2 border-dotted"
-                        : "border border-solid",
-                    )}
+                    className="bg-muted relative z-10 mx-auto mb-8 w-full max-w-3xl rounded-2xl shadow-xs transition-all border border-solid"
                   >
                     <form
                       onSubmit={handleSubmit}
                       className="mx-auto grid max-w-3xl grid-rows-[1fr_auto] gap-2"
                     >
-                      <ContentBlocksPreview
-                        blocks={contentBlocks}
-                        onRemove={removeBlock}
-                      />
+
                       <textarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        onPaste={handlePaste}
                         onKeyDown={(e) => {
                           if (
                             e.key === "Enter" &&
@@ -496,39 +519,10 @@ export function Thread() {
                         className="field-sizing-content resize-none border-none bg-transparent p-3.5 pb-0 shadow-none ring-0 outline-none focus:ring-0 focus:outline-none"
                       />
 
-                      <div className="flex items-center gap-6 p-2 pt-4">
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="render-tool-calls"
-                              checked={hideToolCalls ?? false}
-                              onCheckedChange={setHideToolCalls}
-                            />
-                            <Label
-                              htmlFor="render-tool-calls"
-                              className="text-sm text-gray-600"
-                            >
-                              Hide Tool Calls
-                            </Label>
-                          </div>
+                      <div className="flex items-center justify-between p-2 pt-4">
+                        <div className="text-xs text-gray-500">
+                          <span className="font-medium">Shift + Enter</span> para quebrar linha • <span className="font-medium">Enter</span> para enviar
                         </div>
-                        <Label
-                          htmlFor="file-input"
-                          className="flex cursor-pointer items-center gap-2"
-                        >
-                          <Plus className="size-5 text-gray-600" />
-                          <span className="text-sm text-gray-600">
-                            Upload PDF or Image
-                          </span>
-                        </Label>
-                        <input
-                          id="file-input"
-                          type="file"
-                          onChange={handleFileUpload}
-                          multiple
-                          accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
-                          className="hidden"
-                        />
                         {stream.isLoading ? (
                           <Button
                             key="stop"
@@ -543,8 +537,7 @@ export function Thread() {
                             type="submit"
                             className="ml-auto shadow-md transition-all"
                             disabled={
-                              isLoading ||
-                              (!input.trim() && contentBlocks.length === 0)
+                              isLoading || !input.trim()
                             }
                           >
                             Send
@@ -573,6 +566,14 @@ export function Thread() {
           </div>
         </div>
       </div>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onSave={handleSaveSettings}
+        currentSettings={settings}
+      />
     </div>
   );
 }
