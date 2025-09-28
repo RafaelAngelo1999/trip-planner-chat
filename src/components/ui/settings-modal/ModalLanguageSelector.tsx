@@ -1,6 +1,6 @@
 import React from "react";
 import { Label } from "../label";
-import { LANGUAGE_OPTIONS, SupportedLanguage } from "@/lib/language";
+import { LANGUAGE_OPTIONS, SupportedLanguage } from "@/lib";
 
 interface ModalLanguageSelectorProps {
   currentLanguage: SupportedLanguage;

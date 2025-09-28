@@ -1,9 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  SupportedLanguage,
-  getStoredLanguage,
-  setStoredLanguage,
-} from "@/lib/language";
+import { SupportedLanguage, getStoredLanguage, setStoredLanguage } from "@/lib";
 
 export interface Settings {
   language: SupportedLanguage;

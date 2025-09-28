@@ -9,15 +9,11 @@ import {
   type RemoveUIMessage,
 } from "@langchain/langgraph-sdk/react-ui";
 import { useQueryState } from "nuqs";
-import { getApiKey } from "@/lib/api-key";
+import { getApiKey } from "@/lib";
 import { useThreads } from "./Thread";
 import { toast } from "sonner";
 
-import {
-  SupportedLanguage,
-  getStoredLanguage,
-  setStoredLanguage,
-} from "@/lib/language";
+import { SupportedLanguage, getStoredLanguage, setStoredLanguage } from "@/lib";
 
 export type StateType = { messages: Message[]; ui?: UIMessage[] };
 

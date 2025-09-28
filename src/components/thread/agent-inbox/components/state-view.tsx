@@ -7,12 +7,12 @@ import {
   unknownToPrettyDate,
 } from "../utils";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { BaseMessage } from "@langchain/core/messages";
 import { ToolCall } from "@langchain/core/messages/tool";
 import { ToolCallTable } from "./tool-call-table";
 import { Button } from "@/components/ui/button";
 import { MarkdownText } from "../../markdown-text";
+import { cn } from "@/lib";
 
 interface StateViewRecursiveProps {
   value: unknown;

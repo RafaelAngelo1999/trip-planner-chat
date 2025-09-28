@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTheme } from "next-themes";
-import { Settings } from "@/hooks/useSettings";
-import { SupportedLanguage } from "@/lib/language";
+import { Settings } from "@/hooks";
+import { SupportedLanguage } from "@/lib";
 
 import { SettingsModalHeader } from "./SettingsModalHeader";
 import { ModalLanguageSelector } from "./ModalLanguageSelector";

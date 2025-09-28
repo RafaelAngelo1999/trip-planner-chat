@@ -1,7 +1,7 @@
 import React from "react";
 import { Label } from "../label";
 import { Switch } from "../switch";
-import { Settings } from "@/hooks/useSettings";
+import { Settings } from "@/hooks";
 
 interface SettingItemProps {
   label: string;

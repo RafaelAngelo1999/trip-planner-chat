@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PanelRightOpen, PanelRightClose } from "lucide-react";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useMediaQuery } from "@/hooks";
 
 function ThreadList({
   threads,
@@ -36,7 +36,15 @@ function ThreadList({
           t.values.messages?.length > 0
         ) {
           const firstMessage = t.values.messages[0];
-          itemText = getContentString(firstMessage.content);
+          // Add null/undefined check for firstMessage and content
+          if (firstMessage && firstMessage.content) {
+            try {
+              itemText = getContentString(firstMessage.content);
+            } catch (error) {
+              console.warn("Error processing message content:", error);
+              itemText = `Thread ${t.thread_id.slice(0, 8)}...`;
+            }
+          }
         }
         return (
           <div
@@ -96,7 +104,7 @@ export default function ThreadHistory() {
       .then(setThreads)
       .catch(console.error)
       .finally(() => setThreadsLoading(false));
-  }, []);
+  }, [getThreads, setThreads, setThreadsLoading]);
 
   return (
     <>

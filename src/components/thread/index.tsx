@@ -1,17 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import { ReactNode, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { useStreamContext } from "@/hooks/useStreamContext";
+import { useStreamContext } from "@/hooks";
 import { useState, FormEvent } from "react";
 import { Button } from "../ui/button";
 import { Checkpoint, Message } from "@langchain/langgraph-sdk";
 import { AssistantMessage, AssistantMessageLoading } from "./messages/ai";
 import { HumanMessage } from "./messages/human";
-import {
-  DO_NOT_RENDER_ID_PREFIX,
-  ensureToolCallsHaveResponses,
-} from "@/lib/ensure-tool-responses";
 import { TripIAIcon } from "../icons/trip-ia";
 import {
   ArrowDown,
@@ -25,7 +20,6 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import ThreadHistory from "./history";
 import { toast } from "sonner";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 import {
   useArtifactOpen,
@@ -34,8 +28,17 @@ import {
   useArtifactContext,
 } from "./artifact";
 import { SettingsModal } from "../ui/settings-modal";
-import { useSettings, Settings as SettingsType } from "@/hooks/useSettings";
-import { useNotificationSound } from "@/hooks/useNotificationSound";
+import {
+  cn,
+  DO_NOT_RENDER_ID_PREFIX,
+  ensureToolCallsHaveResponses,
+} from "@/lib";
+import {
+  useMediaQuery,
+  useNotificationSound,
+  useSettings,
+  Settings as SettingsType,
+} from "@/hooks";
 
 function StickyToBottomContent(props: {
   content: ReactNode;

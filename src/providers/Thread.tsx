@@ -1,5 +1,5 @@
 import { validate } from "uuid";
-import { getApiKey } from "@/lib/api-key";
+import { getApiKey } from "@/lib";
 import { Thread } from "@langchain/langgraph-sdk";
 import { useQueryState } from "nuqs";
 import {

@@ -1,6 +1,6 @@
 import React from "react";
-import { LANGUAGE_OPTIONS, SupportedLanguage } from "@/lib/language";
-import { useStreamContext } from "@/hooks/useStreamContext";
+import { LANGUAGE_OPTIONS, SupportedLanguage } from "@/lib";
+import { useStreamContext } from "@/hooks";
 
 interface LanguageSelectorProps {
   className?: string;

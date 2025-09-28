@@ -1,7 +1,7 @@
 import React from "react";
 import type { Base64ContentBlock } from "@langchain/core/messages";
-import { MultimodalPreview } from "./MultimodalPreview";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib";
+import { MultimodalPreview } from "../multimodal-preview";
 
 interface ContentBlocksPreviewProps {
   blocks: Base64ContentBlock[];

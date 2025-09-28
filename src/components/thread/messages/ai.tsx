@@ -1,15 +1,15 @@
 import { parsePartialJson } from "@langchain/core/output_parsers";
-import { useStreamContext } from "@/hooks/useStreamContext";
+import { useStreamContext } from "@/hooks";
 import { AIMessage, Checkpoint, Message } from "@langchain/langgraph-sdk";
 import { getContentString } from "../utils";
 import { BranchSwitcher, CommandBar } from "./shared";
 import { MarkdownText } from "../markdown-text";
 import { LoadExternalComponent } from "@langchain/langgraph-sdk/react-ui";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib";
 import { ToolCalls, ToolResult } from "./tool-calls";
 import { MessageContentComplex } from "@langchain/core/messages";
 import { Fragment } from "react/jsx-runtime";
-import { isAgentInboxInterruptSchema } from "@/lib/agent-inbox-interrupt";
+import { isAgentInboxInterruptSchema } from "@/lib";
 import { ThreadView } from "../agent-inbox";
 import { GenericInterruptView } from "./generic-interrupt";
 import { useArtifact } from "../artifact";
@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bot, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks";
 
 function CopyButton({ content }: { content: string }) {
   const [copied, setCopied] = useState(false);

@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import StreamContext from "../providers/Stream";
+import StreamContext from "@/providers/Stream";
 
 export const useStreamContext = () => {
   const context = useContext(StreamContext);

@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "../button";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { Label } from "../label";
-import { Settings } from "@/hooks/useSettings";
+import { Settings } from "@/hooks";
 
 interface ThemeSelectorProps {
   currentTheme: Settings["theme"];

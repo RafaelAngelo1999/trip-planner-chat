@@ -1,11 +1,11 @@
-import { useStreamContext } from "@/hooks/useStreamContext";
+import { useStreamContext } from "@/hooks";
 import { Message } from "@langchain/langgraph-sdk";
 import { useState } from "react";
 import { getContentString } from "../utils";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib";
 import { Textarea } from "@/components/ui/textarea";
 import { BranchSwitcher, CommandBar } from "./shared";
-import { MultimodalPreview } from "@/components/thread/MultimodalPreview";
+import { MultimodalPreview } from "@/components/thread/multimodal-preview";
 import { isBase64ContentBlock } from "@/lib/multimodal-utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User, AlertCircle, CheckCircle, Clock, RotateCcw } from "lucide-react";

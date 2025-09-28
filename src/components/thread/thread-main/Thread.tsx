@@ -1,0 +1,345 @@
+import { v4 as uuidv4 } from "uuid";
+import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import {
+  useMediaQuery,
+  useNotificationSound,
+  useSettings,
+  useStreamContext,
+  Settings as SettingsType,
+} from "@/hooks";
+import { useState, FormEvent } from "react";
+import { Checkpoint, Message } from "@langchain/langgraph-sdk";
+import { AssistantMessage, AssistantMessageLoading } from "../messages/ai";
+import { HumanMessage } from "../messages/human";
+import { useQueryState, parseAsBoolean } from "nuqs";
+import { StickToBottom } from "use-stick-to-bottom";
+import ThreadHistory from "../history";
+import {
+  useArtifactOpen,
+  ArtifactContent,
+  ArtifactTitle,
+  useArtifactContext,
+} from "../artifact";
+import { SettingsModal } from "../../ui/settings-modal";
+// Subcomponentes
+import { ThreadHeader } from "./ThreadHeader";
+import { WelcomeScreen } from "./WelcomeScreen";
+import { ThreadFooter } from "./ThreadFooter";
+import { StickyToBottomContent, ScrollToBottom } from "./ThreadUtils";
+import { cn, ensureToolCallsHaveResponses } from "@/lib";
+
+export function Thread() {
+  const [artifactContext, setArtifactContext] = useArtifactContext();
+  const [artifactOpen, closeArtifact] = useArtifactOpen();
+
+  const { settings, updateSettings } = useSettings();
+  const [threadId, _setThreadId] = useQueryState("threadId");
+  const [chatHistoryOpen, setChatHistoryOpen] = useQueryState(
+    "chatHistoryOpen",
+    parseAsBoolean.withDefault(false),
+  );
+
+  const isLargeScreen = useMediaQuery("(min-width: 1024px)");
+  const [input, setInput] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const { playNotificationSound } = useNotificationSound();
+
+  const setThreadId = (id: string | null) => {
+    if (id) {
+      _setThreadId(id);
+    } else {
+      _setThreadId(null);
+      closeArtifact();
+      setArtifactContext({});
+    }
+  };
+
+  const stream = useStreamContext();
+  const { messages, isLoading } = stream;
+
+  const prevMessageLength = useRef(messages.length);
+  const [firstTokenReceived, setFirstTokenReceived] = useState(false);
+
+  // Auto-scroll and notification sounds functionality
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const scrollToBottomRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    if (messages.length > prevMessageLength.current) {
+      const lastMessage = messages[messages.length - 1];
+
+      if (lastMessage.type === "ai" && !firstTokenReceived) {
+        setFirstTokenReceived(true);
+        playNotificationSound(settings.enableSounds);
+      }
+
+      if (settings.autoScroll && isAtBottom && scrollToBottomRef.current) {
+        scrollToBottomRef.current();
+      }
+    }
+    prevMessageLength.current = messages.length;
+  }, [
+    messages,
+    firstTokenReceived,
+    playNotificationSound,
+    settings.enableSounds,
+    settings.autoScroll,
+    isAtBottom,
+  ]);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    if (!threadId) {
+      const newThreadId = uuidv4();
+      setThreadId(newThreadId);
+    }
+
+    setFirstTokenReceived(false);
+
+    const newHumanMessage: Message = {
+      id: uuidv4(),
+      type: "human",
+      content: input.trim(),
+    };
+
+    const toolMessages = ensureToolCallsHaveResponses(stream.messages);
+
+    const context = {
+      ...(Object.keys(artifactContext).length > 0 ? artifactContext : {}),
+      language: stream.language,
+    };
+
+    stream.submit(
+      { messages: [...toolMessages, newHumanMessage], context },
+      {
+        streamMode: ["values"],
+        streamSubgraphs: true,
+        streamResumable: true,
+        optimisticValues: (prev) => ({
+          ...prev,
+          context,
+          messages: [
+            ...(prev.messages ?? []),
+            ...toolMessages,
+            newHumanMessage,
+          ],
+        }),
+      },
+    );
+
+    setInput("");
+  };
+
+  const handleRegenerate = (
+    parentCheckpoint: Checkpoint | null | undefined,
+  ) => {
+    prevMessageLength.current = prevMessageLength.current - 1;
+    setFirstTokenReceived(false);
+
+    const context = {
+      language: stream.language,
+    };
+
+    stream.submit(
+      { context },
+      {
+        checkpoint: parentCheckpoint,
+        streamMode: ["values"],
+        streamSubgraphs: true,
+        streamResumable: true,
+      },
+    );
+  };
+
+  const handleSaveSettings = (newSettings: SettingsType) => {
+    updateSettings(newSettings);
+  };
+
+  const chatStarted = !!threadId || !!messages.length;
+  const hasNoAIOrToolMessages = !messages.find(
+    (m) => m.type === "ai" || m.type === "tool",
+  );
+
+  return (
+    <div className="flex h-screen w-full overflow-hidden">
+      {/* Sidebar do histórico */}
+      <div className="relative hidden lg:flex">
+        <motion.div
+          className="absolute z-20 h-full overflow-hidden border-r bg-white shadow-xl dark:border-slate-600/50 dark:bg-slate-900 dark:shadow-2xl dark:shadow-slate-900/40"
+          style={{ width: 300 }}
+          animate={
+            isLargeScreen
+              ? { x: chatHistoryOpen ? 0 : -300 }
+              : { x: chatHistoryOpen ? 0 : -300 }
+          }
+          initial={{ x: -300 }}
+          transition={
+            isLargeScreen
+              ? { type: "spring", stiffness: 300, damping: 30 }
+              : { duration: 0 }
+          }
+        >
+          <div
+            className="relative h-full"
+            style={{ width: 300 }}
+          >
+            <ThreadHistory />
+          </div>
+        </motion.div>
+      </div>
+
+      <div
+        className={cn(
+          "grid w-full grid-cols-[1fr_0fr] transition-all duration-500",
+          artifactOpen && "grid-cols-[3fr_2fr]",
+        )}
+      >
+        <motion.div
+          className={cn(
+            "relative flex min-w-0 flex-1 flex-col overflow-hidden",
+            !chatStarted && "grid-rows-[1fr]",
+          )}
+          layout={isLargeScreen}
+          animate={{
+            marginLeft: chatHistoryOpen ? (isLargeScreen ? 300 : 0) : 0,
+            width: chatHistoryOpen
+              ? isLargeScreen
+                ? "calc(100% - 300px)"
+                : "100%"
+              : "100%",
+          }}
+          transition={
+            isLargeScreen
+              ? { type: "spring", stiffness: 300, damping: 30 }
+              : { duration: 0 }
+          }
+        >
+          {/* Header */}
+          <ThreadHeader
+            chatStarted={chatStarted}
+            isLargeScreen={isLargeScreen}
+            chatHistoryOpen={chatHistoryOpen}
+            setChatHistoryOpen={setChatHistoryOpen}
+            setThreadId={setThreadId}
+            setSettingsOpen={setSettingsOpen}
+            showThreadHistory={settings.showThreadHistory}
+          />
+
+          {/* Conteúdo principal */}
+          <StickToBottom className="flex-1">
+            <StickyToBottomContent
+              className="flex flex-col"
+              contentClassName="flex flex-col gap-4 px-4 pt-4"
+              onScrollContext={(isAtBottom, scrollToBottom) => {
+                setIsAtBottom(isAtBottom);
+                scrollToBottomRef.current = scrollToBottom;
+              }}
+              content={
+                <>
+                  {!chatStarted && hasNoAIOrToolMessages && (
+                    <WelcomeScreen
+                      input={input}
+                      setInput={setInput}
+                      handleSubmit={handleSubmit}
+                    />
+                  )}
+
+                  {messages.map((message, i, arr) => {
+                    if (message.type === "human") {
+                      return (
+                        <HumanMessage
+                          key={message.id}
+                          message={message}
+                          isLoading={false}
+                        />
+                      );
+                    } else if (message.type === "ai") {
+                      const meta = stream.getMessagesMetadata(message);
+                      const parentCheckpoint =
+                        meta?.firstSeenState?.parent_checkpoint;
+                      return (
+                        <AssistantMessage
+                          key={message.id}
+                          message={message}
+                          isLoading={isLoading && i === arr.length - 1}
+                          handleRegenerate={() =>
+                            handleRegenerate(parentCheckpoint)
+                          }
+                        />
+                      );
+                    }
+                    return null;
+                  })}
+
+                  {isLoading &&
+                    messages[messages.length - 1]?.type !== "ai" && (
+                      <AssistantMessageLoading />
+                    )}
+                </>
+              }
+              footer={
+                chatStarted && (
+                  <>
+                    <ScrollToBottom className="animate-in fade-in-0 zoom-in-95 absolute bottom-full left-1/2 mb-4 -translate-x-1/2" />
+                    <ThreadFooter
+                      input={input}
+                      setInput={setInput}
+                      handleSubmit={handleSubmit}
+                      isLoading={isLoading}
+                      stop={() => stream.stop()}
+                      threadId={threadId}
+                      chatStarted={chatStarted}
+                    />
+                  </>
+                )
+              }
+            />
+          </StickToBottom>
+
+          {!chatStarted && (
+            <ThreadFooter
+              input={input}
+              setInput={setInput}
+              handleSubmit={handleSubmit}
+              isLoading={isLoading}
+              stop={() => stream.stop()}
+              threadId={threadId}
+              chatStarted={chatStarted}
+            />
+          )}
+        </motion.div>
+
+        {/* Artifact Sidebar */}
+        <motion.div
+          className="bg-muted relative min-h-full border-l dark:border-slate-600/50"
+          initial={false}
+          animate={{
+            width: artifactOpen ? "100%" : 0,
+            opacity: artifactOpen ? 1 : 0,
+          }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          style={{ overflow: "hidden" }}
+        >
+          {artifactOpen && (
+            <div className="flex h-full flex-col">
+              <ArtifactTitle />
+              <ArtifactContent />
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        currentSettings={settings}
+        onSave={handleSaveSettings}
+      />
+    </div>
+  );
+}
