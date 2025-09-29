@@ -24,7 +24,8 @@ export function StickyToBottomContent(props: StickyToBottomContentProps) {
   return (
     <div
       ref={context.scrollRef}
-      style={{ width: "100%", height: "100%" }}
+      data-scroll-container
+      style={{ width: "100%", height: "100%", overflowY: "auto" }}
       className={props.className}
     >
       <div

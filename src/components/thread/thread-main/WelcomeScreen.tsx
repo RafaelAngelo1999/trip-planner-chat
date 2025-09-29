@@ -13,7 +13,7 @@ export function WelcomeScreen({
   handleSubmit,
 }: WelcomeScreenProps) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-8 px-4">
+    <div className="flex min-h-0 w-full flex-col items-center justify-center gap-8 px-4 py-8">
       {/* Header principal */}
       <div className="text-center">
         <h1 className="mb-2 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-4xl font-bold text-transparent">
@@ -33,7 +33,7 @@ export function WelcomeScreen({
           whileTap={{ scale: 0.98 }}
           onClick={() => {
             setInput(
-              "Quero buscar voos de GIG para LIS saindo em 01/10/2025 e voltando em 10/10/2025",
+              "Quero buscar voos de CNF para SFO, com ida em 29/09, para 1 adulto.",
             );
             setTimeout(() => {
               const form = document.querySelector("form");
@@ -94,8 +94,8 @@ export function WelcomeScreen({
                 💡 Exemplo de uso:
               </p>
               <p className="text-sm leading-relaxed text-gray-700 italic dark:text-gray-300">
-                "Quero buscar voos de GIG para LIS saindo em 01/10/2025 e
-                voltando em 10/10/2025"
+                "Quero buscar voos de CNF para SFO, com ida em 29/09, para 1
+                adulto.
               </p>
             </div>
           </div>
@@ -108,7 +108,7 @@ export function WelcomeScreen({
           whileTap={{ scale: 0.98 }}
           onClick={() => {
             setInput(
-              "Quero buscar hotéis em SFO para check-in em 01/10/2025 e check-out em 10/10/2025",
+              "Quero buscar hotéis em Belo Horizonte para check-in em 01/10/2025 e check-out em 10/10/2025",
             );
             setTimeout(() => {
               const form = document.querySelector("form");
@@ -169,8 +169,8 @@ export function WelcomeScreen({
                 💡 Exemplo de uso:
               </p>
               <p className="text-sm leading-relaxed text-gray-700 italic dark:text-gray-300">
-                "Quero buscar hotéis em SFO para check-in em 01/10/2025 e
-                check-out em 10/10/2025"
+                "Quero buscar hotéis em Belo Horizonte para check-in em
+                01/10/2025 e check-out em 10/10/2025"
               </p>
             </div>
           </div>

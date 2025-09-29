@@ -67,8 +67,33 @@ export function Thread() {
   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
 
   // Auto-scroll and notification sounds functionality
-  const [isAtBottom, setIsAtBottom] = useState(true);
   const scrollToBottomRef = useRef<(() => void) | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const bottomAnchorRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    // Estratégia 1: usar a função do use-stick-to-bottom
+    if (scrollToBottomRef.current) {
+      scrollToBottomRef.current();
+    }
+
+    // Estratégia 2: scroll direto no container com offset para o footer
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const footerHeight = 200; // Altura estimada do footer + margem de segurança
+      container.scrollTop =
+        container.scrollHeight - container.clientHeight + footerHeight;
+    }
+
+    // Estratégia 3: usar scrollIntoView no elemento âncora com margem
+    if (bottomAnchorRef.current) {
+      bottomAnchorRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+        inline: "nearest",
+      });
+    }
+  };
 
   useEffect(() => {
     if (messages.length > prevMessageLength.current) {
@@ -79,9 +104,10 @@ export function Thread() {
         playNotificationSound(settings.enableSounds);
       }
 
-      if (settings.autoScroll && isAtBottom && scrollToBottomRef.current) {
-        scrollToBottomRef.current();
-      }
+      // Sempre fazer scroll para baixo quando há novas mensagens
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
     }
     prevMessageLength.current = messages.length;
   }, [
@@ -89,8 +115,6 @@ export function Thread() {
     firstTokenReceived,
     playNotificationSound,
     settings.enableSounds,
-    settings.autoScroll,
-    isAtBottom,
   ]);
 
   const handleSubmit = (e: FormEvent) => {
@@ -136,6 +160,11 @@ export function Thread() {
     );
 
     setInput("");
+
+    // Scroll imediatamente após enviar a mensagem
+    setTimeout(() => {
+      scrollToBottom();
+    }, 50);
   };
 
   const handleRegenerate = (
@@ -234,88 +263,104 @@ export function Thread() {
           />
 
           {/* Conteúdo principal */}
-          <StickToBottom className="flex-1">
-            <StickyToBottomContent
-              className="flex flex-col"
-              contentClassName="flex flex-col gap-4 px-4 pt-4"
-              onScrollContext={(isAtBottom, scrollToBottom) => {
-                setIsAtBottom(isAtBottom);
-                scrollToBottomRef.current = scrollToBottom;
-              }}
-              content={
-                <>
-                  {!chatStarted && hasNoAIOrToolMessages && (
-                    <WelcomeScreen
-                      input={input}
-                      setInput={setInput}
-                      handleSubmit={handleSubmit}
-                    />
-                  )}
-
-                  {messages
-                    .filter((m) => !m.id?.startsWith(DO_NOT_RENDER_ID_PREFIX))
-                    .map((message, i, arr) => {
-                      if (message.type === "human") {
-                        return (
-                          <HumanMessage
-                            key={message.id}
-                            message={message}
-                            isLoading={false}
-                          />
-                        );
-                      } else if (message.type === "ai") {
-                        const meta = stream.getMessagesMetadata(message);
-                        const parentCheckpoint =
-                          meta?.firstSeenState?.parent_checkpoint;
-                        return (
-                          <AssistantMessage
-                            key={message.id}
-                            message={message}
-                            isLoading={isLoading && i === arr.length - 1}
-                            handleRegenerate={() =>
-                              handleRegenerate(parentCheckpoint)
-                            }
-                          />
-                        );
-                      }
-                      return null;
-                    })}
-
-                  {isLoading && !firstTokenReceived && (
-                    <AssistantMessageLoading />
-                  )}
-                </>
-              }
-              footer={
-                chatStarted && (
+          <div className="flex flex-1 flex-col overflow-y-auto">
+            <StickToBottom className="flex-1">
+              <StickyToBottomContent
+                className="flex flex-col"
+                contentClassName={cn(
+                  "flex flex-col gap-4 px-4",
+                  chatStarted
+                    ? "pt-4 pb-48"
+                    : "flex-1 justify-center items-center pb-48",
+                )}
+                onScrollContext={(isAtBottom, scrollToBottomFn) => {
+                  scrollToBottomRef.current = scrollToBottomFn;
+                  // Também armazenamos a ref do container de scroll
+                  if (!scrollContainerRef.current) {
+                    const scrollElement = document.querySelector(
+                      "[data-scroll-container]",
+                    );
+                    if (scrollElement) {
+                      scrollContainerRef.current =
+                        scrollElement as HTMLDivElement;
+                    }
+                  }
+                }}
+                content={
                   <>
-                    <ScrollToBottom className="animate-in fade-in-0 zoom-in-95 absolute bottom-full left-1/2 mb-4 -translate-x-1/2" />
-                    <ThreadFooter
-                      input={input}
-                      setInput={setInput}
-                      handleSubmit={handleSubmit}
-                      isLoading={isLoading}
-                      stop={() => stream.stop()}
-                      threadId={threadId}
-                      chatStarted={chatStarted}
-                    />
-                  </>
-                )
-              }
-            />
-          </StickToBottom>
+                    {!chatStarted && hasNoAIOrToolMessages ? (
+                      <div className="mx-auto flex w-full max-w-6xl flex-1 items-center justify-center">
+                        <WelcomeScreen
+                          input={input}
+                          setInput={setInput}
+                          handleSubmit={handleSubmit}
+                        />
+                      </div>
+                    ) : (
+                      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
+                        {messages
+                          .filter(
+                            (m) => !m.id?.startsWith(DO_NOT_RENDER_ID_PREFIX),
+                          )
+                          .map((message, i, arr) => {
+                            if (message.type === "human") {
+                              return (
+                                <HumanMessage
+                                  key={message.id}
+                                  message={message}
+                                  isLoading={false}
+                                />
+                              );
+                            } else if (message.type === "ai") {
+                              const meta = stream.getMessagesMetadata(message);
+                              const parentCheckpoint =
+                                meta?.firstSeenState?.parent_checkpoint;
+                              return (
+                                <AssistantMessage
+                                  key={message.id}
+                                  message={message}
+                                  isLoading={isLoading && i === arr.length - 1}
+                                  handleRegenerate={() =>
+                                    handleRegenerate(parentCheckpoint)
+                                  }
+                                />
+                              );
+                            }
+                            return null;
+                          })}
 
-          {!chatStarted && (
-            <ThreadFooter
-              input={input}
-              setInput={setInput}
-              handleSubmit={handleSubmit}
-              isLoading={isLoading}
-              stop={() => stream.stop()}
-              threadId={threadId}
-              chatStarted={chatStarted}
-            />
-          )}
+                        {isLoading && !firstTokenReceived && (
+                          <AssistantMessageLoading />
+                        )}
+
+                        {/* Elemento âncora para scroll com espaço para o footer */}
+                        <div
+                          ref={bottomAnchorRef}
+                          className="h-48"
+                        />
+                      </div>
+                    )}
+                  </>
+                }
+              />
+
+              {/* ScrollToBottom dentro do contexto StickToBottom */}
+              {chatStarted && (
+                <ScrollToBottom className="animate-in fade-in-0 zoom-in-95 fixed bottom-48 left-1/2 z-10 mb-4 -translate-x-1/2" />
+              )}
+            </StickToBottom>
+          </div>
+
+          {/* Footer fixo na parte inferior da viewport */}
+          <ThreadFooter
+            input={input}
+            setInput={setInput}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+            stop={() => stream.stop()}
+            threadId={threadId}
+            chatStarted={chatStarted}
+          />
         </motion.div>
 
         {/* Artifact Sidebar */}
