@@ -8,7 +8,7 @@ import type { Message } from "@langchain/langgraph-sdk";
  */
 export function getContentString(content: Message["content"]): string {
   // Handle null, undefined, or empty content
-  if (!content) return "Empty message";
+  if (!content) return "";
 
   if (typeof content === "string") return content;
 

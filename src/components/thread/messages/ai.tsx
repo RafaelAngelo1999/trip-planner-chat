@@ -63,19 +63,24 @@ function SafeLoadExternalComponent({
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  // Use useEffect to catch async errors
+  // Use useEffect to catch async errors from external components
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
-      if (
-        event.error &&
-        event.error.message &&
-        (event.error.message.includes("Cannot read properties of undefined") ||
-          event.error.message.includes("convertApiFlightToItinerary") ||
-          event.error.message.includes("getFlightDetails") ||
-          event.error.message.includes("fetchFlight"))
-      ) {
+      const errorMessage = event.error?.message || event.message || "";
+      const isExternalError =
+        errorMessage.includes("Cannot read properties of undefined") ||
+        errorMessage.includes("Cannot read properties of null") ||
+        errorMessage.includes("TypeError:") ||
+        errorMessage.includes("ReferenceError:") ||
+        event.filename?.includes("entrypoint.js") ||
+        event.filename?.includes("localhost:2024") ||
+        (event.error &&
+          event.error.stack &&
+          event.error.stack.includes("entrypoint.js"));
+
+      if (isExternalError) {
         setHasError(true);
-        setErrorMessage(event.error.message);
+        setErrorMessage(errorMessage);
         event.preventDefault();
       }
     };
@@ -116,10 +121,31 @@ function SafeLoadExternalComponent({
   }
 
   if (hasError) {
-    const isFlightError =
-      errorMessage.includes("convertApiFlightToItinerary") ||
-      errorMessage.includes("getFlightDetails") ||
-      errorMessage.includes("fetchFlight");
+    // Categorize error type for better messaging
+    const getErrorCategory = (message: string) => {
+      if (
+        message.includes("convertApiFlightToItinerary") ||
+        message.includes("getFlightDetails") ||
+        message.includes("fetchFlight")
+      ) {
+        return { type: "flight", title: "Flight Data Processing Error" };
+      }
+      if (
+        message.includes("Cannot read properties of undefined") ||
+        message.includes("Cannot read properties of null")
+      ) {
+        return { type: "data", title: "Data Processing Error" };
+      }
+      if (
+        message.includes("TypeError:") ||
+        message.includes("ReferenceError:")
+      ) {
+        return { type: "runtime", title: "Runtime Error" };
+      }
+      return { type: "generic", title: "Component Loading Failed" };
+    };
+
+    const errorCategory = getErrorCategory(errorMessage);
 
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-700/50 dark:bg-red-900/20 dark:text-red-300">
@@ -135,16 +161,14 @@ function SafeLoadExternalComponent({
               clipRule="evenodd"
             />
           </svg>
-          <p className="font-medium">
-            {isFlightError
-              ? "Flight Data Processing Error"
-              : "Component Loading Failed"}
-          </p>
+          <p className="font-medium">{errorCategory.title}</p>
         </div>
         <p className="mb-2 text-xs opacity-75">
-          {isFlightError
+          {errorCategory.type === "flight"
             ? "There was an issue processing the flight data. The flight information may be incomplete or missing required fields."
-            : "External component could not be loaded. This might be due to a network issue or missing dependencies."}
+            : errorCategory.type === "data"
+              ? "The external component received invalid or incomplete data."
+              : "External component could not be loaded. This might be due to a network issue, missing dependencies, or invalid data."}
         </p>
         <details className="text-xs opacity-60">
           <summary className="cursor-pointer hover:opacity-80">
@@ -171,10 +195,32 @@ function SafeLoadExternalComponent({
     console.error("Failed to load external component:", error);
     const syncErrorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    const isFlightError =
-      syncErrorMessage.includes("convertApiFlightToItinerary") ||
-      syncErrorMessage.includes("getFlightDetails") ||
-      syncErrorMessage.includes("fetchFlight");
+
+    // Categorize sync error type
+    const getErrorCategory = (message: string) => {
+      if (
+        message.includes("convertApiFlightToItinerary") ||
+        message.includes("getFlightDetails") ||
+        message.includes("fetchFlight")
+      ) {
+        return { type: "flight", title: "Flight Data Processing Error" };
+      }
+      if (
+        message.includes("Cannot read properties of undefined") ||
+        message.includes("Cannot read properties of null")
+      ) {
+        return { type: "data", title: "Data Processing Error" };
+      }
+      if (
+        message.includes("TypeError:") ||
+        message.includes("ReferenceError:")
+      ) {
+        return { type: "runtime", title: "Runtime Error" };
+      }
+      return { type: "generic", title: "Component Loading Failed" };
+    };
+
+    const errorCategory = getErrorCategory(syncErrorMessage);
 
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-700/50 dark:bg-red-900/20 dark:text-red-300">
@@ -190,16 +236,14 @@ function SafeLoadExternalComponent({
               clipRule="evenodd"
             />
           </svg>
-          <p className="font-medium">
-            {isFlightError
-              ? "Flight Data Processing Error"
-              : "Component Loading Failed"}
-          </p>
+          <p className="font-medium">{errorCategory.title}</p>
         </div>
         <p className="mb-2 text-xs opacity-75">
-          {isFlightError
+          {errorCategory.type === "flight"
             ? "There was an issue processing the flight data. The flight information may be incomplete or missing required fields."
-            : "External component could not be loaded. This might be due to a network issue or missing dependencies."}
+            : errorCategory.type === "data"
+              ? "The external component received invalid or incomplete data."
+              : "External component could not be loaded. This might be due to a network issue, missing dependencies, or invalid data."}
         </p>
         <details className="text-xs opacity-60">
           <summary className="cursor-pointer hover:opacity-80">
@@ -217,15 +261,13 @@ function SafeLoadExternalComponent({
 function CustomComponent({
   message,
   thread,
+  customComponents,
 }: {
   message: Message;
   thread: ReturnType<typeof useStreamContext>;
+  customComponents?: any[];
 }) {
   const artifact = useArtifact();
-  const { values } = useStreamContext();
-  const customComponents = values.ui?.filter(
-    (ui) => ui.metadata?.message_id === message.id,
-  );
 
   if (!customComponents?.length) return null;
   return (
@@ -352,6 +394,8 @@ export function AssistantMessage({
     ? parseAnthropicStreamedToolCalls(content)
     : undefined;
 
+  console.log(message);
+
   const hasToolCalls =
     message &&
     "tool_calls" in message &&
@@ -364,6 +408,24 @@ export function AssistantMessage({
     );
   const hasAnthropicToolCalls = !!anthropicStreamedToolCalls?.length;
   const isToolResult = message?.type === "tool";
+
+  // Verificar se há componentes customizados para esta mensagem
+  const { values } = useStreamContext();
+  const customComponents = values.ui?.filter(
+    (ui) => ui.metadata?.message_id === message?.id,
+  );
+  const hasCustomComponents = !!customComponents?.length;
+
+  // Não mostrar se a mensagem da IA estiver completamente vazia
+  if (
+    message?.type === "ai" &&
+    !contentString.trim() &&
+    !hasAnthropicToolCalls &&
+    !hasCustomComponents &&
+    !threadInterrupt?.value
+  ) {
+    return null;
+  }
 
   if (isToolResult && hideToolCalls) {
     return null;
@@ -411,10 +473,11 @@ export function AssistantMessage({
               </>
             )}
 
-            {message && (
+            {message && hasCustomComponents && (
               <CustomComponent
                 message={message}
                 thread={thread}
+                customComponents={customComponents}
               />
             )}
             <Interrupt

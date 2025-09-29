@@ -1,6 +1,6 @@
 "use client";
 
-import { Thread } from "@/components/thread";
+import { Thread } from "@/components/thread/thread-main";
 import { StreamProvider } from "@/providers/Stream";
 import { ThreadProvider } from "@/providers/Thread";
 import { ArtifactProvider } from "@/components/thread/artifact";

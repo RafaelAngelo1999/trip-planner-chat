@@ -27,16 +27,17 @@ if (typeof window !== "undefined" && !(window as any).process) {
 
 // Add comprehensive error handlers for external components
 if (typeof window !== "undefined") {
-  // Override console.error to catch and handle specific errors
+  // Override console.error to catch and handle external component errors
   const originalError = console.error;
   console.error = (...args: any[]) => {
     const message = args[0];
     if (
       typeof message === "string" &&
       (message.includes("Cannot read properties of undefined") ||
-        message.includes("convertApiFlightToItinerary") ||
-        message.includes("getFlightDetails") ||
-        message.includes("fetchFlight"))
+        message.includes("Cannot read properties of null") ||
+        message.includes("TypeError:") ||
+        message.includes("ReferenceError:") ||
+        message.includes("entrypoint.js"))
     ) {
       originalError(
         "🔧 External Component Error (handled by polyfill):",
@@ -52,13 +53,18 @@ if (typeof window !== "undefined") {
     "error",
     (event) => {
       const errorMessage = event.error?.message || event.message || "";
-      if (
+      const isExternalError =
         errorMessage.includes("Cannot read properties of undefined") ||
-        errorMessage.includes("convertApiFlightToItinerary") ||
-        errorMessage.includes("getFlightDetails") ||
-        errorMessage.includes("fetchFlight") ||
-        event.filename?.includes("entrypoint.js")
-      ) {
+        errorMessage.includes("Cannot read properties of null") ||
+        errorMessage.includes("TypeError:") ||
+        errorMessage.includes("ReferenceError:") ||
+        event.filename?.includes("entrypoint.js") ||
+        event.filename?.includes("localhost:2024") ||
+        (event.error &&
+          event.error.stack &&
+          event.error.stack.includes("entrypoint.js"));
+
+      if (isExternalError) {
         console.warn("🔧 Intercepted external component error:", errorMessage);
         event.preventDefault();
         event.stopPropagation();
@@ -72,13 +78,30 @@ if (typeof window !== "undefined") {
   window.addEventListener("unhandledrejection", (event) => {
     if (event.reason && event.reason.message) {
       const message = event.reason.message;
-      if (
+      const isExternalError =
         message.includes("Cannot read properties of undefined") ||
-        message.includes("convertApiFlightToItinerary") ||
-        message.includes("getFlightDetails") ||
-        message.includes("fetchFlight")
-      ) {
+        message.includes("Cannot read properties of null") ||
+        message.includes("TypeError:") ||
+        message.includes("ReferenceError:") ||
+        (event.reason.stack && event.reason.stack.includes("entrypoint.js"));
+
+      // Handle LangGraph HTTP 404 errors specifically
+      const isLangGraphError =
+        message.includes("HTTP 404: UI not found for agent") ||
+        message.includes("UI not found for agent") ||
+        (event.reason.stack && 
+         event.reason.stack.includes("langgraph-sdk") && 
+         message.includes("404"));
+
+      if (isExternalError) {
         console.warn("🔧 Intercepted unhandled promise rejection:", message);
+        event.preventDefault();
+        return;
+      }
+
+      if (isLangGraphError) {
+        console.warn("🔧 LangGraph UI Error (handled by polyfill):", message);
+        console.info("💡 This usually means the agent ID is not configured correctly or the LangGraph server is not running the expected agent.");
         event.preventDefault();
         return;
       }
@@ -88,12 +111,16 @@ if (typeof window !== "undefined") {
   // Override window.onerror as additional safety net
   const originalOnError = window.onerror;
   window.onerror = (message, source, lineno, colno, error) => {
-    if (
+    const isExternalError =
       typeof message === "string" &&
       (message.includes("Cannot read properties of undefined") ||
-        message.includes("convertApiFlightToItinerary") ||
-        source?.includes("entrypoint.js"))
-    ) {
+        message.includes("Cannot read properties of null") ||
+        message.includes("TypeError:") ||
+        message.includes("ReferenceError:") ||
+        source?.includes("entrypoint.js") ||
+        source?.includes("localhost:2024"));
+
+    if (isExternalError) {
       console.warn("🔧 Intercepted window.onerror:", message);
       return true; // Prevent default error handling
     }

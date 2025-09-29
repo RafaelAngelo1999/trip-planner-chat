@@ -27,7 +27,11 @@ import { ThreadHeader } from "./ThreadHeader";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { ThreadFooter } from "./ThreadFooter";
 import { StickyToBottomContent, ScrollToBottom } from "./ThreadUtils";
-import { cn, ensureToolCallsHaveResponses } from "@/lib";
+import {
+  cn,
+  ensureToolCallsHaveResponses,
+  DO_NOT_RENDER_ID_PREFIX,
+} from "@/lib";
 
 export function Thread() {
   const [artifactContext, setArtifactContext] = useArtifactContext();
@@ -248,37 +252,38 @@ export function Thread() {
                     />
                   )}
 
-                  {messages.map((message, i, arr) => {
-                    if (message.type === "human") {
-                      return (
-                        <HumanMessage
-                          key={message.id}
-                          message={message}
-                          isLoading={false}
-                        />
-                      );
-                    } else if (message.type === "ai") {
-                      const meta = stream.getMessagesMetadata(message);
-                      const parentCheckpoint =
-                        meta?.firstSeenState?.parent_checkpoint;
-                      return (
-                        <AssistantMessage
-                          key={message.id}
-                          message={message}
-                          isLoading={isLoading && i === arr.length - 1}
-                          handleRegenerate={() =>
-                            handleRegenerate(parentCheckpoint)
-                          }
-                        />
-                      );
-                    }
-                    return null;
-                  })}
+                  {messages
+                    .filter((m) => !m.id?.startsWith(DO_NOT_RENDER_ID_PREFIX))
+                    .map((message, i, arr) => {
+                      if (message.type === "human") {
+                        return (
+                          <HumanMessage
+                            key={message.id}
+                            message={message}
+                            isLoading={false}
+                          />
+                        );
+                      } else if (message.type === "ai") {
+                        const meta = stream.getMessagesMetadata(message);
+                        const parentCheckpoint =
+                          meta?.firstSeenState?.parent_checkpoint;
+                        return (
+                          <AssistantMessage
+                            key={message.id}
+                            message={message}
+                            isLoading={isLoading && i === arr.length - 1}
+                            handleRegenerate={() =>
+                              handleRegenerate(parentCheckpoint)
+                            }
+                          />
+                        );
+                      }
+                      return null;
+                    })}
 
-                  {isLoading &&
-                    messages[messages.length - 1]?.type !== "ai" && (
-                      <AssistantMessageLoading />
-                    )}
+                  {isLoading && !firstTokenReceived && (
+                    <AssistantMessageLoading />
+                  )}
                 </>
               }
               footer={
