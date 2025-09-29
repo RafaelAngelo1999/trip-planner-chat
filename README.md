@@ -1,72 +1,254 @@
-# Agent Chat UI
+# 🧳 Trip Planner Chat - Assistente de Viagens com IA
 
-Agent Chat UI is a Next.js application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
+**Trip Planner Chat** é uma aplicação Next.js avançada que oferece um assistente inteligente para planejamento de viagens. Utilizando tecnologia LangGraph e inteligência artificial, o sistema fornece recomendações personalizadas para voos, hotéis e roteiros de viagem através de uma interface de chat moderna e intuitiva.
 
-> [!NOTE]
-> 🎥 Watch the video setup guide [here](https://youtu.be/lInrwVnZ83o).
+## ✨ Características Principais
 
-## Setup
+- 🤖 **Agentes Especializados**: Agentes dedicados para busca de voos e reserva de hotéis
+- 🎨 **Interface Moderna**: Design responsivo com tema claro/escuro
+- 💬 **Chat Inteligente**: Conversação natural com streaming de respostas em tempo real
+- 🔄 **Auto-scroll**: Rolagem automática para acompanhar as mensagens
+- 📱 **Responsivo**: Funciona perfeitamente em desktop, tablet e mobile
+- 🌐 **Multilíngue**: Suporte para múltiplos idiomas
+- 🎯 **UX Otimizada**: Dicas visuais de teclado e feedback imediato
+- 📊 **Histórico**: Manutenção de conversas anteriores
+- 🔧 **Configurável**: Configurações personalizáveis para cada usuário
 
-> [!TIP]
-> Don't want to run the app locally? Use the deployed site here: [agentchat.vercel.app](https://agentchat.vercel.app)!
+## 🚀 Configuração e Instalação
 
-First, clone the repository, or run the [`npx` command](https://www.npmjs.com/package/create-agent-chat-app):
+### Pré-requisitos
+
+Certifique-se de ter instalado em sua máquina:
+
+- **Node.js** (versão 18.x ou superior)
+- **pnpm** (gerenciador de pacotes recomendado)
+- **Git** para clonagem do repositório
+
+### 📥 Clonagem e Instalação
+
+1. **Clone o repositório:**
 
 ```bash
-npx create-agent-chat-app
+git clone https://github.com/RafaelAngelo1999/trip-planner-chat.git
+cd trip-planner-chat
 ```
 
-or
-
-```bash
-git clone https://github.com/langchain-ai/agent-chat-ui.git
-
-cd agent-chat-ui
-```
-
-Install dependencies:
+2. **Instale as dependências:**
 
 ```bash
 pnpm install
 ```
 
-Run the app:
+3. **Configure as variáveis de ambiente:**
+
+```bash
+cp .env.example .env
+```
+
+Edite o arquivo `.env` com suas configurações específicas.
+
+4. **Execute o projeto em modo de desenvolvimento:**
 
 ```bash
 pnpm dev
 ```
 
-The app will be available at `http://localhost:3000`.
+5. **Acesse a aplicação:**
+   Abra seu navegador em `http://localhost:3000`
 
-## Usage
-
-Once the app is running (or if using the deployed site), you'll be prompted to enter:
-
-- **Deployment URL**: The URL of the LangGraph server you want to chat with. This can be a production or development URL.
-- **Assistant/Graph ID**: The name of the graph, or ID of the assistant to use when fetching, and submitting runs via the chat interface.
-- **LangSmith API Key**: (only required for connecting to deployed LangGraph servers) Your LangSmith API key to use when authenticating requests sent to LangGraph servers.
-
-After entering these values, click `Continue`. You'll then be redirected to a chat interface where you can start chatting with your LangGraph server.
-
-## Environment Variables
-
-You can bypass the initial setup form by setting the following environment variables:
+### 🛠️ Scripts Disponíveis
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:2024
-NEXT_PUBLIC_ASSISTANT_ID=agent
+# Desenvolvimento
+pnpm dev          # Executa em modo desenvolvimento com hot-reload
+
+# Produção
+pnpm build        # Gera build otimizado para produção
+pnpm start        # Executa a aplicação em modo produção
+
+# Qualidade de Código
+pnpm lint         # Executa ESLint para análise de código
+pnpm type-check   # Verifica tipos TypeScript
+
+# Testes
+pnpm test         # Executa suíte de testes
+pnpm test:watch   # Executa testes em modo watch
 ```
 
-> [!TIP]
-> If you want to connect to a production LangGraph server, read the [Going to Production](#going-to-production) section.
+## 📖 Como Usar
 
-To use these variables:
+### Interface Inicial
 
-1. Copy the `.env.example` file to a new file named `.env`
-2. Fill in the values in the `.env` file
-3. Restart the application
+Ao acessar a aplicação, você será apresentado à tela de boas-vindas com dois agentes especializados:
+
+1. **🛫 Agente de Voos**: Especializado em busca e comparação de passagens aéreas
+2. **🏨 Agente de Hotéis**: Focado em reservas e recomendações de hospedagem
+
+### Interação com o Chat
+
+**Métodos de Entrada:**
+
+- Clique em um dos cards dos agentes para começar com exemplos pré-definidos
+- Digite diretamente sua consulta no campo de texto
+
+**Controles de Teclado:**
+
+- `Enter`: Envia a mensagem
+- `Shift + Enter`: Quebra linha (permite mensagens multi-linha)
+
+**Exemplos de Consultas:**
+
+**Para Voos:**
+
+```
+Quero buscar voos de CNF para SFO, com ida em outubro de 2025, para 1 adulto.
+```
+
+**Para Hotéis:**
+
+```
+Preciso de um hotel em San Francisco para 3 noites, a partir de 15 de outubro.
+```
+
+### Funcionalidades Avançadas
+
+- 🔄 **Auto-scroll**: O chat rola automaticamente para novas mensagens
+- 📱 **Design Responsivo**: Interface se adapta a diferentes tamanhos de tela
+- 🌙 **Tema Escuro/Claro**: Alternância automática baseada na preferência do sistema
+- 💾 **Histórico**: Conversas são salvas automaticamente
+- ⚙️ **Configurações**: Personalize notificações, sons e comportamento do scroll
+
+## ⚙️ Variáveis de Ambiente
+
+Configure as seguintes variáveis no arquivo `.env` para personalizar o comportamento da aplicação:
+
+### Configurações Básicas
+
+```bash
+# URL do servidor LangGraph (desenvolvimento local)
+NEXT_PUBLIC_API_URL=http://localhost:2024
+
+# ID do assistente/agente principal
+NEXT_PUBLIC_ASSISTANT_ID=agent
+
+# Chave da API LangSmith (necessária para servidores em produção)
+LANGSMITH_API_KEY=lsv2_sua_chave_aqui
+```
+
+### Configurações Avançadas
+
+```bash
+# URL do servidor LangGraph em produção
+LANGGRAPH_API_URL=https://sua-aplicacao.langgraph.app
+
+# Configurações de tema e aparência
+NEXT_PUBLIC_DEFAULT_THEME=system  # light, dark, ou system
+
+# Configurações de funcionalidades
+NEXT_PUBLIC_ENABLE_SOUND=true     # Habilita notificações sonoras
+NEXT_PUBLIC_AUTO_SCROLL=true      # Habilita scroll automático
+
+# Debug e desenvolvimento
+NEXT_PUBLIC_DEBUG_MODE=false      # Modo debug para desenvolvimento
+```
+
+### Como Configurar:
+
+1. Copie o arquivo de exemplo:
+
+```bash
+cp .env.example .env
+```
+
+2. Edite o arquivo `.env` com suas configurações específicas
+
+3. Reinicie a aplicação:
+
+```bash
+pnpm dev
+```
+
+> **💡 Dica:** Para conectar a um servidor LangGraph em produção, consulte a seção [Configuração para Produção](#-configuração-para-produção).
+
+Restart the application
 
 When these environment variables are set, the application will use them instead of showing the setup form.
+
+## 🏗️ Arquitetura e Tecnologias
+
+### Stack Tecnológico
+
+**Frontend:**
+
+- ⚛️ **Next.js 15.3.2** - Framework React com App Router
+- 🎨 **Tailwind CSS** - Framework CSS utilitário para estilização
+- 🎭 **Framer Motion** - Biblioteca para animações fluidas
+- 📱 **Responsive Design** - Interface adaptável para todos os dispositivos
+
+**Backend e IA:**
+
+- 🤖 **LangGraph SDK** - Orquestração de agentes de IA
+- 🧠 **LangChain** - Framework para aplicações de IA
+- 📊 **LangSmith** - Observabilidade e monitoramento
+
+**Desenvolvimento:**
+
+- 🔷 **TypeScript** - Tipagem estática para JavaScript
+- 🧪 **Vitest** - Framework de testes moderno
+- 📏 **ESLint + Prettier** - Linting e formatação de código
+- 🔧 **pnpm** - Gerenciador de pacotes eficiente
+
+### Estrutura do Projeto
+
+```
+src/
+├── app/                    # App Router do Next.js
+├── components/             # Componentes React reutilizáveis
+│   ├── thread/            # Componentes do chat
+│   │   └── thread-main/   # Componentes principais do thread
+│   └── ui/                # Componentes de interface base
+├── hooks/                 # Hooks customizados
+│   ├── api/              # Hooks para chamadas de API
+│   ├── business/         # Lógica de negócio
+│   └── ui/               # Hooks de interface
+├── lib/                  # Utilitários e configurações
+├── providers/            # Context providers do React
+├── types/                # Definições de tipos TypeScript
+└── constants/            # Constantes da aplicação
+```
+
+### Componentes Principais
+
+**Thread System:**
+
+- `Thread.tsx` - Container principal do chat
+- `ThreadHeader.tsx` - Cabeçalho com navegação
+- `ThreadFooter.tsx` - Input de mensagens com dicas
+- `WelcomeScreen.tsx` - Tela inicial com agentes
+
+**Mensagens:**
+
+- `HumanMessage.tsx` - Mensagens do usuário
+- `AssistantMessage.tsx` - Respostas da IA
+- `ToolCalls.tsx` - Visualização de chamadas de ferramentas
+
+## 🎯 Recursos Avançados
+
+### Sistema de Agentes
+
+A aplicação utiliza um sistema de agentes especializados que podem:
+
+- 🔍 Processar linguagem natural para entender intenções
+- 🌐 Fazer chamadas para APIs externas de voos e hotéis
+- 📊 Apresentar dados estruturados de forma amigável
+- 🔄 Manter contexto entre diferentes interações
+
+### Interface Inteligente
+
+- **Auto-scroll Inteligente**: Acompanha automaticamente novas mensagens
+- **Indicadores Visuais**: Loading states e progress indicators
+- **Feedback Tátil**: Animações e transições suaves
+- **Acessibilidade**: Suporte a leitores de tela e navegação por teclado
 
 ## Hiding Messages in the Chat
 
@@ -177,26 +359,44 @@ export function Writer(props: {
       </div>
 
       <Artifact title={props.title}>
-        <p className="p-4 whitespace-pre-wrap">{props.content}</p>
+        <p className="whitespace-pre-wrap p-4">{props.content}</p>
       </Artifact>
     </>
   );
 }
 ```
 
-## Going to Production
+## 🚀 Configuração para Produção
 
-Once you're ready to go to production, you'll need to update how you connect, and authenticate requests to your deployment. By default, the Agent Chat UI is setup for local development, and connects to your LangGraph server directly from the client. This is not possible if you want to go to production, because it requires every user to have their own LangSmith API key, and set the LangGraph configuration themselves.
+Quando estiver pronto para levar a aplicação para produção, você precisará configurar a autenticação e conexão com seu servidor LangGraph implantado. Por padrão, a aplicação está configurada para desenvolvimento local, conectando-se diretamente ao servidor LangGraph pelo cliente.
 
-### Production Setup
+### Preparação para Produção
 
-To productionize the Agent Chat UI, you'll need to pick one of two ways to authenticate requests to your LangGraph server. Below, I'll outline the two options:
+Para colocar o Trip Planner Chat em produção, você tem duas opções principais de autenticação:
 
-### Quickstart - API Passthrough
+### 📋 Checklist de Produção
 
-The quickest way to productionize the Agent Chat UI is to use the [API Passthrough](https://github.com/bracesproul/langgraph-nextjs-api-passthrough) package ([NPM link here](https://www.npmjs.com/package/langgraph-nextjs-api-passthrough)). This package provides a simple way to proxy requests to your LangGraph server, and handle authentication for you.
+Antes de fazer o deploy, certifique-se de:
 
-This repository already contains all of the code you need to start using this method. The only configuration you need to do is set the proper environment variables.
+- [ ] Configurar variáveis de ambiente de produção
+- [ ] Configurar servidor LangGraph em produção
+- [ ] Configurar autenticação (LangSmith API Key ou custom)
+- [ ] Testar todas as funcionalidades em ambiente de staging
+- [ ] Configurar monitoramento e logs
+- [ ] Configurar domínio personalizado (opcional)
+
+### 🚀 Opção 1: API Passthrough (Recomendado)
+
+A maneira mais rápida de colocar o Trip Planner Chat em produção é usando o pacote [API Passthrough](https://github.com/bracesproul/langgraph-nextjs-api-passthrough). Este pacote fornece uma forma simples de proxy das requisições para seu servidor LangGraph, gerenciando a autenticação automaticamente.
+
+**Vantagens:**
+
+- ✅ Configuração rápida e simples
+- ✅ Autenticação centralizada no servidor
+- ✅ Não expõe chaves API para o cliente
+- ✅ Código já incluído no repositório
+
+Este repositório já contém todo o código necessário. Você só precisa configurar as variáveis de ambiente adequadas:
 
 ```bash
 NEXT_PUBLIC_ASSISTANT_ID="agent"
@@ -240,3 +440,87 @@ const streamValue = useTypedStream({
   },
 });
 ```
+
+## 🧪 Desenvolvimento e Testes
+
+### Executando Testes
+
+```bash
+# Executar todos os testes
+pnpm test
+
+# Executar testes em modo watch
+pnpm test:watch
+
+# Executar testes com coverage
+pnpm test:coverage
+```
+
+### Estrutura de Testes
+
+Os testes estão organizados em:
+
+- `__tests__/components/` - Testes de componentes React
+- `__tests__/hooks/` - Testes de hooks customizados
+- `__tests__/lib/` - Testes de utilitários
+
+### Debugging
+
+Para debugar a aplicação:
+
+1. **Modo Debug**: Configure `NEXT_PUBLIC_DEBUG_MODE=true` no `.env`
+2. **DevTools**: Use React DevTools e Redux DevTools
+3. **Console Logs**: Verifique o console do navegador para logs detalhados
+4. **Network Tab**: Monitore requisições para o servidor LangGraph
+
+## 🤝 Contribuindo
+
+Contribuições são bem-vindas! Por favor, siga estas diretrizes:
+
+### Como Contribuir
+
+1. **Fork** o repositório
+2. **Clone** seu fork localmente
+3. **Crie** uma branch para sua feature: `git checkout -b minha-nova-feature`
+4. **Faça** suas alterações seguindo os padrões de código
+5. **Teste** suas alterações: `pnpm test`
+6. **Commit** suas mudanças: `git commit -m 'Adiciona nova feature'`
+7. **Push** para sua branch: `git push origin minha-nova-feature`
+8. **Abra** um Pull Request
+
+### Padrões de Código
+
+- ✅ Use TypeScript para tipagem estática
+- ✅ Siga os padrões do ESLint e Prettier
+- ✅ Escreva testes para novas funcionalidades
+- ✅ Documente mudanças significativas
+- ✅ Use conventional commits
+
+### Reportando Bugs
+
+Para reportar bugs, abra uma issue incluindo:
+
+- 🐛 Descrição detalhada do problema
+- 📱 Dispositivo/navegador onde ocorre
+- 🔄 Passos para reproduzir
+- 📷 Screenshots (se aplicável)
+- 🔍 Logs de erro
+
+## 📄 Licença
+
+Este projeto está licenciado sob a [MIT License](LICENSE) - veja o arquivo LICENSE para detalhes.
+
+## 👥 Autor
+
+**Rafael Angelo** - [@RafaelAngelo1999](https://github.com/RafaelAngelo1999)
+
+## 🙏 Agradecimentos
+
+- [LangChain](https://langchain.com/) pela tecnologia de IA
+- [Next.js](https://nextjs.org/) pelo framework React
+- [Tailwind CSS](https://tailwindcss.com/) pelo framework CSS
+- [Vercel](https://vercel.com/) pela plataforma de deploy
+
+---
+
+**🚀 Pronto para planejar sua próxima viagem com IA? Comece agora!**
